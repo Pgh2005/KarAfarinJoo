@@ -172,15 +172,14 @@ class _BusinessSelectionPageState extends State<BusinessSelectionPage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: model.criteria.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final item = model.criteria[index];
                   return _CriteriaRow(
                     item: item,
                     index: index,
                     bizNames: _bizNameControllers.map((c) => c.text).toList(),
-                    getError: (bizIndex) =>
-                        _fieldError(item as BusinessCriterion, bizIndex),
+                    getError: (bizIndex) => _fieldError(item, bizIndex),
                     onChanged: () => setState(() {}),
                   );
                 },
@@ -291,76 +290,76 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-// ─── Table Header ─────────────────────────────────────────────────────────────
-class _TableHeader extends StatelessWidget {
-  final List<String> bizNames;
+// // ─── Table Header ─────────────────────────────────────────────────────────────
+// class _TableHeader extends StatelessWidget {
+//   final List<String> bizNames;
 
-  const _TableHeader({required this.bizNames});
+//   const _TableHeader({required this.bizNames});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          // شاخص
-          const Expanded(
-            flex: 3,
-            child: Text(
-              'شاخص',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          // وزن
-          const SizedBox(
-            width: 42,
-            child: Text(
-              'وزن',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // ۳ کسب‌وکار
-          ...List.generate(3, (i) {
-            final name = bizNames[i].isNotEmpty
-                ? bizNames[i]
-                : 'کسب‌و‌کار ${i + 1}';
-            return Expanded(
-              flex: 2,
-              child: Padding(
-                padding: EdgeInsets.only(right: i > 0 ? 6 : 0),
-                child: Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+//       decoration: BoxDecoration(
+//         color: AppTheme.primary,
+//         borderRadius: BorderRadius.circular(12),
+//       ),
+//       child: Row(
+//         children: [
+//           // شاخص
+//           const Expanded(
+//             flex: 3,
+//             child: Text(
+//               'شاخص',
+//               style: TextStyle(
+//                 color: Colors.white,
+//                 fontWeight: FontWeight.w700,
+//                 fontSize: 12,
+//               ),
+//             ),
+//           ),
+//           // وزن
+//           const SizedBox(
+//             width: 42,
+//             child: Text(
+//               'وزن',
+//               textAlign: TextAlign.center,
+//               style: TextStyle(
+//                 color: Colors.white,
+//                 fontWeight: FontWeight.w700,
+//                 fontSize: 12,
+//               ),
+//             ),
+//           ),
+//           const SizedBox(width: 8),
+//           // ۳ کسب‌وکار
+//           ...List.generate(3, (i) {
+//             final name = bizNames[i].isNotEmpty
+//                 ? bizNames[i]
+//                 : 'کسب‌و‌کار ${i + 1}';
+//             return Expanded(
+//               flex: 2,
+//               child: Padding(
+//                 padding: EdgeInsets.only(right: i > 0 ? 6 : 0),
+//                 child: Text(
+//                   name,
+//                   textAlign: TextAlign.center,
+//                   maxLines: 1,
+//                   overflow: TextOverflow.ellipsis,
+//                   style: const TextStyle(
+//                     color: Colors.white,
+//                     fontWeight: FontWeight.w700,
+//                     fontSize: 11,
+//                   ),
+//                 ),
+//               ),
+//             );
+//           }),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 // ─── Criteria Row ─────────────────────────────────────────────────────────────
 class _CriteriaRow extends StatefulWidget {
@@ -401,7 +400,9 @@ class _CriteriaRowState extends State<_CriteriaRow> {
   @override
   void dispose() {
     _weightCtrl.dispose();
-    for (final c in _scoreCtrl) c.dispose();
+    for (final c in _scoreCtrl) {
+      c.dispose();
+    }
     super.dispose();
   }
 
