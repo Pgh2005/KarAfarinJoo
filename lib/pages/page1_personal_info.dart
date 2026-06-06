@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:karafarini/core/theme/AppTheme.dart';
+import 'package:karafarini/widgets/app_bar_builder.dart';
+import 'package:karafarini/widgets/save_button.dart';
+import 'package:karafarini/widgets/section_card.dart';
 import '../app_state.dart';
 import '../widgets/form_field_builder.dart';
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
 class PersonalInfoPage extends StatefulWidget {
   final AppState appState;
   const PersonalInfoPage({super.key, required this.appState});
@@ -11,140 +16,254 @@ class PersonalInfoPage extends StatefulWidget {
 }
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
+  final bool isLoading = false;
+  final bool isEnable = true;
+
   @override
   Widget build(BuildContext context) {
     final model = widget.appState.personalInfo;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: const Text('اطلاعات فردی و کسب و کار')),
+        backgroundColor: AppTheme.surface,
+        appBar: const AppBarBuilder(title: 'اطلاعات فردی و کسب‌و‌کار'),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              FormBuilder.buildSectionHeader('اطلاعات شخصی'),
-              FormBuilder.buildTextField(
-                'نام خانوادگی',
-                model.lastName,
-                (value) => setState(() => model.lastName = value),
-              ),
-              FormBuilder.buildTextField(
-                'نام',
-                model.firstName,
-                (value) => setState(() => model.firstName = value),
-              ),
-              FormBuilder.buildTextField(
-                'تماس',
-                model.contact,
-                (value) => setState(() => model.contact = value),
-                keyboardType: TextInputType.phone,
-              ),
-              FormBuilder.buildTextField(
-                'محله (اختیاری)',
-                model.neighborhood,
-                (value) => setState(() => model.neighborhood = value),
-              ),
-              FormBuilder.buildSectionHeader('تحصیلات'),
-              FormBuilder.buildTextField(
-                'رشته تحصیلی',
-                model.major,
-                (value) => setState(() => model.major = value),
-              ),
-              FormBuilder.buildDropdown<String>(
-                'مقطع تحصیلی',
-                model.degree,
-                const [
-                  DropdownMenuItem(value: 'کارشناسی', child: Text('کارشناسی')),
-                  DropdownMenuItem(value: 'ارشد', child: Text('ارشد')),
-                  DropdownMenuItem(value: 'دکتری', child: Text('دکتری')),
+              // ── بخش اطلاعات شخصی ──
+              SectionCard(
+                icon: Icons.person_outline_rounded,
+                title: 'اطلاعات شخصی',
+                children: [
+                  FormBuilder.buildTextField(
+                    'نام خانوادگی',
+                    model.lastName,
+                    (v) => setState(() => model.lastName = v),
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildTextField(
+                    'نام',
+                    model.firstName,
+                    (v) => setState(() => model.firstName = v),
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildTextField(
+                    'شماره تماس',
+                    model.contact,
+                    (v) => setState(() => model.contact = v),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildTextField(
+                    'محله (اختیاری)',
+                    model.neighborhood,
+                    (v) => setState(() => model.neighborhood = v),
+                  ),
                 ],
-                (value) {
-                  if (value != null) setState(() => model.degree = value);
-                },
               ),
-              FormBuilder.buildDropdown<String>(
-                'رضایت از رشته؟',
-                model.satisfiedMajor,
-                const [
-                  DropdownMenuItem(value: 'بله', child: Text('بله')),
-                  DropdownMenuItem(value: 'خیر', child: Text('خیر')),
+
+              const SizedBox(height: 12),
+
+              // ── بخش تحصیلات ──
+              SectionCard(
+                icon: Icons.school_outlined,
+                title: 'تحصیلات',
+                children: [
+                  FormBuilder.buildTextField(
+                    'رشته تحصیلی',
+                    model.major,
+                    (v) => setState(() => model.major = v),
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildDropdown<String>(
+                    'مقطع تحصیلی',
+                    model.degree,
+                    const [
+                      DropdownMenuItem(
+                        value: 'کاردانی',
+                        child: Text('کاردانی'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'کارشناسی',
+                        child: Text('کارشناسی'),
+                      ),
+                      DropdownMenuItem(value: 'ارشد', child: Text('ارشد')),
+                      DropdownMenuItem(value: 'دکتری', child: Text('دکتری')),
+                    ],
+                    (v) {
+                      if (v != null) setState(() => model.degree = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildDropdown<String>(
+                    'رضایت از رشته؟',
+                    model.satisfiedMajor,
+                    const [
+                      DropdownMenuItem(value: 'بله', child: Text('بله')),
+                      DropdownMenuItem(value: 'خیر', child: Text('خیر')),
+                    ],
+                    (v) {
+                      if (v != null) setState(() => model.satisfiedMajor = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildTextField(
+                    'علت انتخاب رشته',
+                    model.majorReason,
+                    (v) => setState(() => model.majorReason = v),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildTextField(
+                    'اگر به گذشته برگردی، چه می‌کنی؟',
+                    model.ifReturn,
+                    (v) => setState(() => model.ifReturn = v),
+                    maxLines: 2,
+                  ),
                 ],
-                (value) {
-                  if (value != null)
-                    setState(() => model.satisfiedMajor = value);
-                },
               ),
-              FormBuilder.buildTextField(
-                'علت انتخاب رشته',
-                model.majorReason,
-                (value) => setState(() => model.majorReason = value),
-                maxLines: 3,
-              ),
-              FormBuilder.buildTextField(
-                'اگر برگردی به گذشته، چه می‌کنی؟',
-                model.ifReturn,
-                (value) => setState(() => model.ifReturn = value),
-                maxLines: 2,
-              ),
-              FormBuilder.buildSectionHeader('کسب و کار'),
-              FormBuilder.buildTextField(
-                'عنوان کسب و کار',
-                model.businessTitle,
-                (value) => setState(() => model.businessTitle = value),
-              ),
-              FormBuilder.buildDropdown<String>(
-                'آیا از کسب و کار خود راضی هستی؟',
-                model.businessSatisfied,
-                const [
-                  DropdownMenuItem(value: 'بله', child: Text('بله')),
-                  DropdownMenuItem(value: 'خیر', child: Text('خیر')),
-                  DropdownMenuItem(value: 'تا حدی', child: Text('تا حدی')),
+
+              const SizedBox(height: 12),
+
+              // ── بخش کسب‌وکار ──
+              SectionCard(
+                icon: Icons.business_center_outlined,
+                title: 'کسب‌و‌کار',
+                children: [
+                  FormBuilder.buildTextField(
+                    'عنوان کسب‌و‌کار',
+                    model.businessTitle,
+                    (v) => setState(() => model.businessTitle = v),
+                  ),
+                  const SizedBox(height: 12),
+                  FormBuilder.buildDropdown<String>(
+                    'رضایت از کسب‌و‌کار؟',
+                    model.businessSatisfied,
+                    const [
+                      DropdownMenuItem(value: 'بله', child: Text('بله')),
+                      DropdownMenuItem(value: 'خیر', child: Text('خیر')),
+                      DropdownMenuItem(value: 'تا حدی', child: Text('تا حدی')),
+                    ],
+                    (v) {
+                      if (v != null) {
+                        setState(() => model.businessSatisfied = v);
+                      }
+                    },
+                  ),
                 ],
-                (value) {
-                  if (value != null)
-                    setState(() => model.businessSatisfied = value);
-                },
               ),
-              FormBuilder.buildSectionHeader('ارزش‌ها'),
-              FormBuilder.buildDropdown<String>(
-                'جهت‌گیری ارزشی',
-                model.valueOrientation,
-                const [
-                  DropdownMenuItem(value: 'علم', child: Text('علم')),
-                  DropdownMenuItem(value: 'قدرت', child: Text('قدرت')),
-                  DropdownMenuItem(value: 'ثروت', child: Text('ثروت')),
-                  DropdownMenuItem(value: 'شهرت', child: Text('شهرت')),
-                  DropdownMenuItem(value: 'وظیفه', child: Text('وظیفه')),
+
+              const SizedBox(height: 12),
+
+              // ── بخش ارزش‌ها ──
+              SectionCard(
+                icon: Icons.star_border_rounded,
+                title: 'ارزش‌ها',
+                children: [
+                  FormBuilder.buildDropdown<String>(
+                    'جهت‌گیری ارزشی',
+                    model.valueOrientation,
+                    const [
+                      DropdownMenuItem(value: 'علم', child: Text('علم')),
+                      DropdownMenuItem(value: 'قدرت', child: Text('قدرت')),
+                      DropdownMenuItem(value: 'ثروت', child: Text('ثروت')),
+                      DropdownMenuItem(value: 'شهرت', child: Text('شهرت')),
+                      DropdownMenuItem(value: 'وظیفه', child: Text('وظیفه')),
+                    ],
+                    (v) {
+                      if (v != null) setState(() => model.valueOrientation = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  // رتبه و نمره — فقط نمایش، قابل ویرایش نیست
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ReadOnlyField(
+                          label: 'رتبه',
+                          value: model.rank,
+                          icon: Icons.leaderboard_outlined,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ReadOnlyField(
+                          label: 'نمره',
+                          value: model.score,
+                          icon: Icons.grade_outlined,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-                (value) {
-                  if (value != null)
-                    setState(() => model.valueOrientation = value);
-                },
               ),
-              FormBuilder.buildTextField(
-                'رتبه',
-                model.rank,
-                (value) => setState(() => model.rank = value),
-                keyboardType: TextInputType.number,
-                enabled: false,
+
+              const SizedBox(height: 24),
+              // ── دکمه ذخیره ──
+              SaveButton(
+                onSave: () {},
+                isLoading: isLoading,
+                isEnabled: isEnable,
               ),
-              FormBuilder.buildTextField(
-                'نمره',
-                model.score,
-                (value) => setState(() => model.score = value),
-                keyboardType: TextInputType.number,
-                enabled: false,
-              ),
-              FormBuilder.buildSaveButton(() {
-                setState(() {});
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✓ مقادیر ذخیره شد')),
-                );
-              }, context),
+              const SizedBox(height: 32),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Read-Only Field Widget ───────────────────────────────────────────────────
+class _ReadOnlyField extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _ReadOnlyField({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.divider,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border, width: 1.2),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppTheme.textHint, size: 18),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textHint,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value.isEmpty ? '—' : value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

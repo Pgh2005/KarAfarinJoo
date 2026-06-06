@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:karafarini/core/theme/AppTheme.dart';
 
 class FormBuilder {
   static Widget buildTextField(
@@ -17,9 +18,15 @@ class FormBuilder {
         keyboardType: keyboardType,
         maxLines: maxLines,
         enabled: enabled,
+        cursorColor: AppTheme.primary,
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: const TextStyle(color: AppTheme.textSecondary),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+          ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
             vertical: 12,
@@ -38,13 +45,19 @@ class FormBuilder {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
+        dropdownColor: AppTheme.cardBg,
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: const TextStyle(color: AppTheme.textSecondary),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
             vertical: 12,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppTheme.primary, width: 2),
           ),
         ),
         items: items,
@@ -63,19 +76,19 @@ class FormBuilder {
     );
   }
 
-  static Widget buildSaveButton(VoidCallback onPressed, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'ذخیره',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
-  }
+  // static Widget buildSaveButton(VoidCallback onPressed, BuildContext context) {
+  //   return Padding(
+  //     padding: const EdgeInsets.only(top: 24),
+  //     child: ElevatedButton(
+  //       onPressed: onPressed,
+  //       child: const Padding(
+  //         padding: EdgeInsets.symmetric(vertical: 12),
+  //         child: Text(
+  //           'ذخیره',
+  //           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

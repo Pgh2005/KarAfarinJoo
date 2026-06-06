@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:karafarini/core/theme/AppTheme.dart';
+import 'package:karafarini/widgets/app_bar_builder.dart';
 import '../app_state.dart';
 import 'page1_personal_info.dart';
 import 'page2_talent.dart';
@@ -10,8 +12,11 @@ import 'page6_growth_table.dart';
 class HomePage extends StatelessWidget {
   final AppState appState;
   final VoidCallback toggleTheme;
-  const HomePage({Key? key, required this.appState, required this.toggleTheme})
-    : super(key: key);
+  const HomePage({
+    super.key,
+    required this.appState,
+    required this.toggleTheme,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +56,12 @@ class HomePage extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'کارآفرین جو',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-          ),
-          centerTitle: true,
+        appBar: AppBarBuilder(
+          title: 'کارآفرین جو',
           actions: [
             IconButton(
               icon: const Icon(Icons.brightness_4),
+              color: AppTheme.primaryLight,
               onPressed: toggleTheme,
               tooltip: 'تغییر تم',
             ),
@@ -68,7 +70,7 @@ class HomePage extends StatelessWidget {
         body: ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: pages.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final item = pages[index];
             return Card(
@@ -94,14 +96,12 @@ class HomePage extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.15),
+                                color: AppTheme.primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
                                 item['icon'] as IconData,
-                                color: Theme.of(context).colorScheme.primary,
+                                color: AppTheme.primary,
                                 size: 24,
                               ),
                             ),
@@ -119,9 +119,9 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       Icon(
-                        Icons.arrow_back_ios,
+                        Icons.arrow_forward_ios_rounded,
                         size: 18,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: AppTheme.primary,
                       ),
                     ],
                   ),
