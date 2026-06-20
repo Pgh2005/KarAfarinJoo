@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:karafarini/core/theme/AppTheme.dart';
+import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/widgets/app_bar_builder.dart';
 import 'package:karafarini/widgets/info_hint_box.dart';
 import 'package:karafarini/widgets/save_button.dart';
 import 'package:karafarini/widgets/score_card.dart';
 import 'package:karafarini/widgets/section_card.dart';
-import '../app_state.dart';
+import '../core/state/app_state.dart';
 
 class BusinessSelectionPage extends StatefulWidget {
   final AppState appState;

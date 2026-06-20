@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:karafarini/core/theme/AppTheme.dart';
+import 'package:karafarini/core/theme/app_theme.dart';
 
 class SectionCard extends StatelessWidget {
   final IconData icon;

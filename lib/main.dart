@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'app_state.dart';
+import 'core/state/app_state.dart';
 import 'pages/home_page.dart';
 
 void main() {
@@ -53,13 +53,16 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: HomePage(appState: appState, toggleTheme: toggleTheme),
+      home: HomePage(
+        appState: appState,
+        //  toggleTheme: toggleTheme
+      ),
     );
   }
 
-  void toggleTheme() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-    });
-  }
+  // void toggleTheme() {
+  //   setState(() {
+  //     isDarkMode = !isDarkMode;
+  //   });
+  // }
 }

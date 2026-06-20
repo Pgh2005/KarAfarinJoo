@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/widgets/app_bar_builder.dart';
 import 'package:karafarini/widgets/save_button.dart';
-import '../app_state.dart';
+import '../core/state/app_state.dart';
 import '../widgets/form_field_builder.dart';
 
 class ValuesPage extends StatefulWidget {
