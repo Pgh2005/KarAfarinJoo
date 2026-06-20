@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/AppTheme.dart';
 import 'package:karafarini/widgets/app_bar_builder.dart';
+import 'package:karafarini/widgets/info_hint_box.dart';
 import 'package:karafarini/widgets/save_button.dart';
+import 'package:karafarini/widgets/score_card.dart';
+import 'package:karafarini/widgets/section_card.dart';
 import '../app_state.dart';
 
 class BusinessSelectionPage extends StatefulWidget {
@@ -97,7 +100,7 @@ class _BusinessSelectionPageState extends State<BusinessSelectionPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── نام‌گذاری کسب‌وکارها ──
-              _SectionCard(
+              SectionCard(
                 icon: Icons.business_outlined,
                 title: 'نام کسب‌و‌کارها',
                 children: [
@@ -133,36 +136,9 @@ class _BusinessSelectionPageState extends State<BusinessSelectionPage> {
               const SizedBox(height: 16),
 
               // ── راهنما ──
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      color: AppTheme.primary,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'امتیاز هر کسب‌و‌کار نباید از وزن آن معیار بیشتر باشد و نمی‌توانند با هم یکسان باشند.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.primaryDark,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              const InfoHintBox(
+                text:
+                    'امتیاز هر کسب‌و‌کار نباید از وزن آن معیار بیشتر باشد و نمی‌توانند با هم یکسان باشند.',
               ),
 
               const SizedBox(height: 16),
@@ -188,7 +164,7 @@ class _BusinessSelectionPageState extends State<BusinessSelectionPage> {
               const SizedBox(height: 20),
 
               // ── جمع امتیازات ──
-              _SectionCard(
+              SectionCard(
                 icon: Icons.bar_chart_rounded,
                 title: 'نتیجه امتیازات',
                 children: [
@@ -203,12 +179,13 @@ class _BusinessSelectionPageState extends State<BusinessSelectionPage> {
 
                     return Padding(
                       padding: EdgeInsets.only(bottom: i < 2 ? 12 : 0),
-                      child: _ScoreCard(
+                      child: ScoreCard(
                         name: bizName,
                         score: totals[i],
                         percent: percent.toDouble(),
                         maxScore: maxScore,
                         isWinner: isWinner,
+                        winnerLabel: 'این کسب‌و‌کار بالاترین امتیاز را دارد',
                       ),
                     );
                   }),
@@ -232,138 +209,9 @@ class _BusinessSelectionPageState extends State<BusinessSelectionPage> {
   }
 }
 
-// ─── Section Card ─────────────────────────────────────────────────────────────
-class _SectionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final List<Widget> children;
-
-  const _SectionCard({
-    required this.icon,
-    required this.title,
-    required this.children,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border, width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: const BoxDecoration(
-              color: AppTheme.primaryLight,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: AppTheme.primary, size: 20),
-                const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(height: 1, color: AppTheme.border),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: children,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// // ─── Table Header ─────────────────────────────────────────────────────────────
-// class _TableHeader extends StatelessWidget {
-//   final List<String> bizNames;
-
-//   const _TableHeader({required this.bizNames});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-//       decoration: BoxDecoration(
-//         color: AppTheme.primary,
-//         borderRadius: BorderRadius.circular(12),
-//       ),
-//       child: Row(
-//         children: [
-//           // شاخص
-//           const Expanded(
-//             flex: 3,
-//             child: Text(
-//               'شاخص',
-//               style: TextStyle(
-//                 color: Colors.white,
-//                 fontWeight: FontWeight.w700,
-//                 fontSize: 12,
-//               ),
-//             ),
-//           ),
-//           // وزن
-//           const SizedBox(
-//             width: 42,
-//             child: Text(
-//               'وزن',
-//               textAlign: TextAlign.center,
-//               style: TextStyle(
-//                 color: Colors.white,
-//                 fontWeight: FontWeight.w700,
-//                 fontSize: 12,
-//               ),
-//             ),
-//           ),
-//           const SizedBox(width: 8),
-//           // ۳ کسب‌وکار
-//           ...List.generate(3, (i) {
-//             final name = bizNames[i].isNotEmpty
-//                 ? bizNames[i]
-//                 : 'کسب‌و‌کار ${i + 1}';
-//             return Expanded(
-//               flex: 2,
-//               child: Padding(
-//                 padding: EdgeInsets.only(right: i > 0 ? 6 : 0),
-//                 child: Text(
-//                   name,
-//                   textAlign: TextAlign.center,
-//                   maxLines: 1,
-//                   overflow: TextOverflow.ellipsis,
-//                   style: const TextStyle(
-//                     color: Colors.white,
-//                     fontWeight: FontWeight.w700,
-//                     fontSize: 11,
-//                   ),
-//                 ),
-//               ),
-//             );
-//           }),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 // ─── Criteria Row ─────────────────────────────────────────────────────────────
 class _CriteriaRow extends StatefulWidget {
-  final dynamic item;
+  final BusinessCriterion item;
   final int index;
   final List<String> bizNames;
   final String? Function(int bizIndex) getError;
@@ -436,8 +284,7 @@ class _CriteriaRowState extends State<_CriteriaRow> {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    if (item.category != null &&
-                        item.category.toString().isNotEmpty) ...[
+                    if (item.category.isNotEmpty) ...[
                       const SizedBox(height: 3),
                       Text(
                         item.category,
@@ -453,7 +300,6 @@ class _CriteriaRowState extends State<_CriteriaRow> {
               const SizedBox(width: 10),
               // وزن — badge قابل ویرایش کنار عنوان
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(8),
@@ -477,7 +323,6 @@ class _CriteriaRowState extends State<_CriteriaRow> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      // const SizedBox(width: 2),
                       SizedBox(
                         width: 35,
                         child: TextFormField(
@@ -579,116 +424,6 @@ class _CriteriaRowState extends State<_CriteriaRow> {
               );
             }),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Score Card ───────────────────────────────────────────────────────────────
-class _ScoreCard extends StatelessWidget {
-  final String name;
-  final double score;
-  final double percent;
-  final double maxScore;
-  final bool isWinner;
-
-  const _ScoreCard({
-    required this.name,
-    required this.score,
-    required this.percent,
-    required this.maxScore,
-    required this.isWinner,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isWinner
-            ? const Color(0xFF1A73E8).withValues(alpha: 0.07)
-            : AppTheme.divider,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isWinner ? AppTheme.primary : AppTheme.border,
-          width: isWinner ? 2 : 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              if (isWinner)
-                const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: Icon(
-                    Icons.emoji_events_rounded,
-                    color: Color(0xFFF59E0B),
-                    size: 20,
-                  ),
-                ),
-              Expanded(
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: isWinner ? AppTheme.primary : AppTheme.textPrimary,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: isWinner ? AppTheme.primary : AppTheme.textHint,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${percent.toStringAsFixed(1)}٪',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: maxScore > 0 ? (score / maxScore).clamp(0.0, 1.0) : 0,
-              minHeight: 8,
-              backgroundColor: AppTheme.border,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isWinner ? AppTheme.primary : AppTheme.textHint,
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'امتیاز: ${score.toStringAsFixed(1)} از ${maxScore.toStringAsFixed(0)}',
-            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-          ),
-          if (isWinner) ...[
-            const SizedBox(height: 6),
-            const Text(
-              '✓ این کسب‌و‌کار بالاترین امتیاز را دارد',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppTheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ],
       ),
     );
