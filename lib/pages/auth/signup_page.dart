@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:karafarini/core/services/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
+import 'package:karafarini/widgets/auth_text_field.dart';
+import 'package:karafarini/widgets/role_selector.dart';
+import 'package:karafarini/widgets/info_hint_box.dart';
+import 'package:karafarini/widgets/section_card.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -9,7 +14,7 @@ class SignupPage extends StatefulWidget {
   State<SignupPage> createState() => _SignupPageState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final fullNameController = TextEditingController();
@@ -22,7 +27,58 @@ class _SignupPageState extends State<SignupPage> {
 
   String role = 'student';
   bool loading = false;
-  bool _obscurePassword = true;
+
+  late final AnimationController _headerCtrl;
+  late final Animation<double> _headerFade;
+  late final Animation<Offset> _headerSlide;
+
+  late final AnimationController _cardsCtrl;
+  late final Animation<double> _cardsFade;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _headerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _headerFade = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _headerCtrl, curve: Curves.easeOut));
+    _headerSlide = Tween<Offset>(
+      begin: const Offset(0, -0.25),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _headerCtrl, curve: Curves.easeOutCubic));
+
+    _cardsCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _cardsFade = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _cardsCtrl, curve: Curves.easeOut));
+
+    _headerCtrl.forward().then((_) => _cardsCtrl.forward());
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    fullNameController.dispose();
+    studentNumberController.dispose();
+    teacherNumberController.dispose();
+    phoneController.dispose();
+    majorController.dispose();
+    departmentController.dispose();
+    bioController.dispose();
+    _headerCtrl.dispose();
+    _cardsCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> submit() async {
     setState(() => loading = true);
@@ -62,322 +118,223 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppTheme.surface,
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text('ثبت‌نام'),
-          backgroundColor: AppTheme.primary,
-          foregroundColor: AppTheme.primaryLight,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppTheme.border),
-          ),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
         ),
-        body: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          children: [
-            // ── بخش اطلاعات اصلی ──
-            _SectionCard(
-              icon: Icons.person_outline_rounded,
-              title: 'اطلاعات اصلی',
-              color: AppTheme.primary,
-              children: [
-                _field(
-                  controller: fullNameController,
-                  label: 'نام کامل',
-                  icon: Icons.badge_outlined,
-                ),
-                const SizedBox(height: 12),
-                _field(
-                  controller: emailController,
-                  label: 'ایمیل',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  hint: 'example@email.com',
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: passwordController,
-                  obscureText: _obscurePassword,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'رمز عبور',
-                    prefixIcon: const Icon(
-                      Icons.lock_outline_rounded,
-                      color: AppTheme.primary,
-                      size: 20,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: AppTheme.textHint,
-                        size: 20,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
+        child: Scaffold(
+          backgroundColor: AppTheme.surface,
+          body: CustomScrollView(
+            slivers: [
+              // ── Hero Header ──
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _headerFade,
+                  child: SlideTransition(
+                    position: _headerSlide,
+                    child: _SignupHeader(screenHeight: size.height),
                   ),
                 ),
-              ],
-            ),
+              ),
 
-            const SizedBox(height: 16),
-
-            // ── نقش ──
-            _SectionCard(
-              icon: Icons.school_outlined,
-              title: 'نقش در سیستم',
-              color: const Color(0xFF7C3AED),
-              children: [
-                // انتخاب نقش با تاگل
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.divider,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    children: [
-                      _RoleTab(
-                        label: 'دانشجو',
-                        icon: Icons.person_outlined,
-                        selected: role == 'student',
-                        onTap: () => setState(() => role = 'student'),
-                      ),
-                      _RoleTab(
-                        label: 'استاد',
-                        icon: Icons.person_4_outlined,
-                        selected: role == 'professor',
-                        onTap: () => setState(() => role = 'professor'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                if (role == 'student')
-                  _field(
-                    controller: studentNumberController,
-                    label: 'شماره دانشجویی',
-                    icon: Icons.numbers_outlined,
-                    keyboardType: TextInputType.number,
-                  ),
-                if (role == 'professor')
-                  _field(
-                    controller: teacherNumberController,
-                    label: 'شماره پرسنلی',
-                    icon: Icons.numbers_outlined,
-                    keyboardType: TextInputType.number,
-                  ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // ── اطلاعات تکمیلی ──
-            _SectionCard(
-              icon: Icons.info_outline_rounded,
-              title: 'اطلاعات تکمیلی',
-              color: const Color(0xFF0891B2),
-              children: [
-                _field(
-                  controller: phoneController,
-                  label: 'شماره تماس',
-                  icon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 12),
-                _field(
-                  controller: majorController,
-                  label: 'رشته تحصیلی',
-                  icon: Icons.book_outlined,
-                ),
-                const SizedBox(height: 12),
-                _field(
-                  controller: departmentController,
-                  label: 'دانشکده / گروه',
-                  icon: Icons.account_balance_outlined,
-                ),
-                const SizedBox(height: 12),
-                _field(
-                  controller: bioController,
-                  label: 'بیو (معرفی کوتاه)',
-                  icon: Icons.notes_outlined,
-                  maxLines: 3,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            // دکمه ثبت‌نام
-            SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: loading ? null : submit,
-                child: loading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
+              // ── Form body ──
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _cardsFade,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Step label
+                        _StepHeader(
+                          step: 1,
+                          total: 3,
+                          title: 'اطلاعات اصلی',
+                          subtitle: 'نام، ایمیل و رمز عبور خود را وارد کنید',
                         ),
-                      )
-                    : const Text('ثبت‌نام'),
-              ),
-            ),
+                        const SizedBox(height: 12),
 
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
+                        SectionCard(
+                          icon: Icons.person_outline_rounded,
+                          title: 'اطلاعات شخصی',
+                          children: [
+                            AuthTextField(
+                              controller: fullNameController,
+                              label: 'نام کامل',
+                              prefixIcon: Icons.badge_outlined,
+                            ),
+                            const SizedBox(height: 12),
+                            AuthTextField(
+                              controller: emailController,
+                              label: 'ایمیل',
+                              prefixIcon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              hint: 'example@email.com',
+                            ),
+                            const SizedBox(height: 12),
+                            AuthTextField(
+                              controller: passwordController,
+                              label: 'رمز عبور',
+                              prefixIcon: Icons.lock_outline_rounded,
+                              obscureText: true,
+                              showToggle: true,
+                            ),
+                          ],
+                        ),
 
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    String? hint,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppTheme.primary, size: 20),
-      ),
-    );
-  }
-}
+                        const SizedBox(height: 24),
+                        _StepHeader(
+                          step: 2,
+                          total: 3,
+                          title: 'نقش و شناسه',
+                          subtitle: 'دانشجو یا استاد هستید؟',
+                        ),
+                        const SizedBox(height: 12),
 
-// ─── Section Card ─────────────────────────────────────────────────────────────
-class _SectionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color color;
-  final List<Widget> children;
+                        SectionCard(
+                          icon: Icons.school_rounded,
+                          title: 'نقش دانشگاهی',
+                          children: [
+                            RoleSelector(
+                              selectedRole: role,
+                              onChanged: (v) => setState(() => role = v),
+                            ),
+                            const SizedBox(height: 14),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) =>
+                                  FadeTransition(
+                                    opacity: anim,
+                                    child: SizeTransition(
+                                      sizeFactor: anim,
+                                      axisAlignment: -1,
+                                      child: child,
+                                    ),
+                                  ),
+                              child: role == 'student'
+                                  ? Column(
+                                      key: const ValueKey('student'),
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        AuthTextField(
+                                          controller: studentNumberController,
+                                          label: 'شماره دانشجویی',
+                                          prefixIcon: Icons.tag_rounded,
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ],
+                                    )
+                                  : Column(
+                                      key: const ValueKey('professor'),
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        AuthTextField(
+                                          controller: teacherNumberController,
+                                          label: 'شماره پرسنلی',
+                                          prefixIcon: Icons.badge_rounded,
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ],
+                        ),
 
-  const _SectionCard({
-    required this.icon,
-    required this.title,
-    required this.color,
-    required this.children,
-  });
+                        const SizedBox(height: 24),
+                        _StepHeader(
+                          step: 3,
+                          total: 3,
+                          title: 'اطلاعات تکمیلی',
+                          subtitle: 'این اطلاعات پروفایل شما را تکمیل می‌کند',
+                        ),
+                        const SizedBox(height: 12),
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border, width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(15),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(height: 1, color: AppTheme.border),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: children,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+                        SectionCard(
+                          icon: Icons.info_outline_rounded,
+                          title: 'جزئیات بیشتر',
+                          children: [
+                            AuthTextField(
+                              controller: phoneController,
+                              label: 'شماره تماس',
+                              prefixIcon: Icons.phone_outlined,
+                              keyboardType: TextInputType.phone,
+                            ),
+                            const SizedBox(height: 12),
+                            AuthTextField(
+                              controller: majorController,
+                              label: 'رشته تحصیلی',
+                              prefixIcon: Icons.auto_stories_outlined,
+                            ),
+                            const SizedBox(height: 12),
+                            AuthTextField(
+                              controller: departmentController,
+                              label: 'دانشکده / گروه',
+                              prefixIcon: Icons.account_balance_outlined,
+                            ),
+                            const SizedBox(height: 12),
+                            AuthTextField(
+                              controller: bioController,
+                              label: 'بیوگرافی',
+                              prefixIcon: Icons.edit_note_rounded,
+                              maxLines: 3,
+                              hint: 'کمی درباره خودت بنویس...',
+                            ),
+                            const SizedBox(height: 14),
+                            InfoHintBox(
+                              text:
+                                  'این اطلاعات فقط برای تکمیل پروفایل است و هر زمان قابل ویرایش می‌باشد.',
+                            ),
+                          ],
+                        ),
 
-// ─── Role Tab ─────────────────────────────────────────────────────────────────
-class _RoleTab extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
+                        const SizedBox(height: 32),
 
-  const _RoleTab({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
+                        // ── Submit Button ──
+                        _SignupButton(loading: loading, onPressed: submit),
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? AppTheme.cardBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                        const SizedBox(height: 16),
+
+                        // ── Login Link ──
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'قبلاً ثبت‌نام کرده‌اید؟',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppTheme.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 4,
+                                ),
+                              ),
+                              child: const Text(
+                                'وارد شوید',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: selected ? AppTheme.primary : AppTheme.textSecondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? AppTheme.primary : AppTheme.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -388,129 +345,339 @@ class _RoleTab extends StatelessWidget {
   }
 }
 
-// import 'package:flutter/material.dart';
-// import 'package:karafarini/core/services/auth_services.dart';
+// ──────────────────────────────────────────────────────────────────────────────
+// Hero header — gradient with logo + tagline + wave clip
+// ──────────────────────────────────────────────────────────────────────────────
 
-// class SignupPage extends StatefulWidget {
-//   const SignupPage({super.key});
+class _SignupHeader extends StatelessWidget {
+  final double screenHeight;
+  const _SignupHeader({required this.screenHeight});
 
-//   @override
-//   State<SignupPage> createState() => _SignupPageState();
-// }
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: _WaveClipper(),
+      child: Container(
+        width: double.infinity,
+        height: screenHeight * 0.30,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [AppTheme.primaryDark, AppTheme.primary, Color(0xFF2196F3)],
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Stack(
+            children: [
+              // Decorative circles
+              Positioned(
+                top: -18,
+                left: -18,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                right: -30,
+                child: Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
+                ),
+              ),
+              // Content
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon badge
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.person_add_alt_1_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'ایجاد حساب کاربری',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'به جامعه کارآفرین‌جو بپیوندید',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.82),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-// class _SignupPageState extends State<SignupPage> {
-//   final emailController = TextEditingController();
-//   final passwordController = TextEditingController();
-//   final fullNameController = TextEditingController();
-//   final studentNumberController = TextEditingController();
-//   final teacherNumberController = TextEditingController();
-//   final phoneController = TextEditingController();
-//   final majorController = TextEditingController();
-//   final departmentController = TextEditingController();
-//   final bioController = TextEditingController();
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 28);
+    path.quadraticBezierTo(
+      size.width * 0.25,
+      size.height,
+      size.width * 0.5,
+      size.height - 16,
+    );
+    path.quadraticBezierTo(
+      size.width * 0.75,
+      size.height - 32,
+      size.width,
+      size.height - 10,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
 
-//   String role = 'student';
-//   bool loading = false;
+  @override
+  bool shouldReclip(_WaveClipper oldClipper) => false;
+}
 
-//   Future<void> submit() async {
-//     setState(() => loading = true);
-//     try {
-//       await AuthService.instance.signUp(
-//         email: emailController.text.trim(),
-//         password: passwordController.text.trim(),
-//         fullName: fullNameController.text.trim(),
-//         role: role,
-//         studentNumber: role == 'student'
-//             ? studentNumberController.text.trim()
-//             : null,
-//         teacherNumber: role == 'professor'
-//             ? teacherNumberController.text.trim()
-//             : null,
-//         phone: phoneController.text.trim(),
-//         major: majorController.text.trim(),
-//         department: departmentController.text.trim(),
-//         bio: bioController.text.trim(),
-//       );
+// ──────────────────────────────────────────────────────────────────────────────
+// Step header — numbered step indicator
+// ──────────────────────────────────────────────────────────────────────────────
 
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text('ثبت‌نام انجام شد. حالا وارد شو.')),
-//         );
-//         Navigator.pop(context);
-//       }
-//     } catch (e) {
-//       if (mounted) {
-//         ScaffoldMessenger.of(
-//           context,
-//         ).showSnackBar(SnackBar(content: Text('خطا: $e')));
-//       }
-//     } finally {
-//       if (mounted) setState(() => loading = false);
-//     }
-//   }
+class _StepHeader extends StatelessWidget {
+  final int step;
+  final int total;
+  final String title;
+  final String subtitle;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('ثبت‌نام')),
-//       body: ListView(
-//         padding: const EdgeInsets.all(16),
-//         children: [
-//           TextField(
-//             controller: fullNameController,
-//             decoration: const InputDecoration(labelText: 'نام کامل'),
-//           ),
-//           TextField(
-//             controller: emailController,
-//             decoration: const InputDecoration(labelText: 'ایمیل'),
-//           ),
-//           TextField(
-//             controller: passwordController,
-//             decoration: const InputDecoration(labelText: 'رمز عبور'),
-//             obscureText: true,
-//           ),
-//           DropdownButtonFormField(
-//             value: role,
-//             items: const [
-//               DropdownMenuItem(value: 'student', child: Text('دانشجو')),
-//               DropdownMenuItem(value: 'professor', child: Text('استاد')),
-//             ],
-//             onChanged: (value) => setState(() => role = value as String),
-//             decoration: const InputDecoration(labelText: 'نقش'),
-//           ),
-//           if (role == 'student')
-//             TextField(
-//               controller: studentNumberController,
-//               decoration: const InputDecoration(labelText: 'شماره دانشجویی'),
-//             ),
-//           if (role == 'professor')
-//             TextField(
-//               controller: teacherNumberController,
-//               decoration: const InputDecoration(labelText: 'شماره پرسنلی'),
-//             ),
-//           TextField(
-//             controller: phoneController,
-//             decoration: const InputDecoration(labelText: 'شماره تماس'),
-//           ),
-//           TextField(
-//             controller: majorController,
-//             decoration: const InputDecoration(labelText: 'رشته'),
-//           ),
-//           TextField(
-//             controller: departmentController,
-//             decoration: const InputDecoration(labelText: 'دانشکده/گروه'),
-//           ),
-//           TextField(
-//             controller: bioController,
-//             decoration: const InputDecoration(labelText: 'بیو'),
-//           ),
-//           const SizedBox(height: 16),
-//           ElevatedButton(
-//             onPressed: loading ? null : submit,
-//             child: Text(loading ? 'در حال ثبت...' : 'ثبت‌نام'),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+  const _StepHeader({
+    required this.step,
+    required this.total,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Step badge
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppTheme.primary, AppTheme.primaryDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primary.withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              '$step',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Step dots
+        Row(
+          children: List.generate(total, (i) {
+            final active = i == step - 1;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.only(right: 4),
+              width: active ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: active ? AppTheme.primary : AppTheme.border,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Signup submit button with shimmer-like pulse on loading
+// ──────────────────────────────────────────────────────────────────────────────
+
+class _SignupButton extends StatefulWidget {
+  final bool loading;
+  final VoidCallback onPressed;
+
+  const _SignupButton({required this.loading, required this.onPressed});
+
+  @override
+  State<_SignupButton> createState() => _SignupButtonState();
+}
+
+class _SignupButtonState extends State<_SignupButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _pulse = Tween<double>(
+      begin: 1.0,
+      end: 1.03,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _pulse,
+      child: Container(
+        height: 54,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [AppTheme.primary, AppTheme.primaryDark],
+            begin: Alignment.centerRight,
+            end: Alignment.centerLeft,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primary.withValues(alpha: 0.40),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: widget.loading ? null : widget.onPressed,
+            borderRadius: BorderRadius.circular(16),
+            splashColor: Colors.white.withValues(alpha: 0.15),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: widget.loading
+                    ? const SizedBox(
+                        key: ValueKey('loading'),
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : const Row(
+                        key: ValueKey('label'),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.how_to_reg_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'ثبت‌نام',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
