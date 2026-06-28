@@ -146,34 +146,11 @@ class _SplashScreenState extends State<SplashScreen>
                         scale: _logoScale,
                         child: FadeTransition(
                           opacity: _logoOpacity,
-                          child: Container(
-                            width: 110,
-                            height: 110,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'ک',
-                                style: TextStyle(
-                                  fontSize: 56,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  height: 1,
-                                ),
-                              ),
+                          child: SizedBox(
+                            width: 180,
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
