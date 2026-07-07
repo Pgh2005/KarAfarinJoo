@@ -9,10 +9,10 @@ import 'page4_business_selection.dart';
 import 'page5_product_priority.dart';
 import 'page6_growth_table.dart';
 
-class HomePage extends StatelessWidget {
+class HomePageAllSheet extends StatelessWidget {
   final AppState appState;
   // final VoidCallback toggleTheme;
-  const HomePage({
+  const HomePageAllSheet({
     super.key,
     required this.appState,
     // required this.toggleTheme,
