@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:karafarini/pages/auth/login_page.dart';
-import 'package:karafarini/pages/auth/signup_page.dart';
-import 'package:karafarini/pages/home_test_Page.dart';
-import 'package:karafarini/pages/splash_screen.dart';
+import 'package:karafarini/core/state/app_state.dart';
+import 'package:karafarini/features/auth/presentation/pages/login_page.dart';
+import 'package:karafarini/features/auth/presentation/pages/signup_page.dart';
+import 'package:karafarini/pages/home_page.dart';
+import 'package:karafarini/features/auth/presentation/pages/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
@@ -37,7 +38,10 @@ final appRouter = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
-    GoRoute(path: '/home', builder: (context, state) => const HomeTestPage()),
+    GoRoute(
+      path: '/home',
+      builder: (context, state) => HomePage(appState: AppState()),
+    ),
   ],
 );
 

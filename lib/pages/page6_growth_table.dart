@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
-import 'package:karafarini/widgets/app_bar_builder.dart';
-import 'package:karafarini/widgets/info_hint_box.dart';
-import 'package:karafarini/widgets/save_button.dart';
+import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/info_hint_box.dart';
+import 'package:karafarini/core/widgets/save_button.dart';
 import '../core/state/app_state.dart';
 
 class GrowthTablePage extends StatefulWidget {

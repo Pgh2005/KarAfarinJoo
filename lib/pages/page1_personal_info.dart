@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
-import 'package:karafarini/widgets/app_bar_builder.dart';
-import 'package:karafarini/widgets/save_button.dart';
-import 'package:karafarini/widgets/section_card.dart';
+import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/save_button.dart';
+import 'package:karafarini/core/widgets/section_card.dart';
 import '../core/state/app_state.dart';
-import '../widgets/form_field_builder.dart';
+import '../core/widgets/form_field_builder.dart';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 class PersonalInfoPage extends StatefulWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
-import 'package:karafarini/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import '../core/state/app_state.dart';
 import 'page1_personal_info.dart';
 import 'page2_talent.dart';

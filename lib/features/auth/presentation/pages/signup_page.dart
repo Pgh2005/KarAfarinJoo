@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:karafarini/core/services/auth_services.dart';
+import 'package:karafarini/features/auth/data/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
-import 'package:karafarini/widgets/auth_text_field.dart';
-import 'package:karafarini/widgets/role_selector.dart';
-import 'package:karafarini/widgets/info_hint_box.dart';
-import 'package:karafarini/widgets/section_card.dart';
+import 'package:karafarini/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:karafarini/features/auth/presentation/widgets/role_selector.dart';
+import 'package:karafarini/core/widgets/info_hint_box.dart';
+import 'package:karafarini/core/widgets/section_card.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

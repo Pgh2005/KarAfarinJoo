@@ -10,7 +10,7 @@ class AuthService {
     required String email,
     required String password,
     required String fullName,
-    required String role, // student | professor
+    required String role,
     String? studentNumber,
     String? teacherNumber,
     String? phone,
