@@ -22,9 +22,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        routerConfig: appRouter,
+        builder: (context, child) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: child!,
+        ),
+      ),
     );
   }
 }
