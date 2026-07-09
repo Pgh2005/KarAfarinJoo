@@ -75,10 +75,7 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطا: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -109,13 +106,13 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppTheme.primary.withOpacity(0.1),
+                    AppTheme.primary.withValues(alpha: 0.1),
                     AppTheme.primaryLight,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppTheme.primary.withOpacity(0.2),
+                  color: AppTheme.primary.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -168,13 +165,10 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
               decoration: BoxDecoration(
                 color: AppTheme.cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppTheme.border,
-                  width: 1,
-                ),
+                border: Border.all(color: AppTheme.border, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -257,9 +251,7 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
                         prefixIcon: Icon(Icons.group),
                       ),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'تعداد دانشجو الزامی است';
@@ -307,18 +299,14 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
                 color: AppTheme.primaryLight,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppTheme.primary.withOpacity(0.3),
+                  color: AppTheme.primary.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppTheme.primary,
-                    size: 20,
-                  ),
+                  Icon(Icons.info_outline, color: AppTheme.primary, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -371,11 +359,7 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: AppTheme.primary,
-        ),
+        Icon(icon, size: 20, color: AppTheme.primary),
         const SizedBox(width: 8),
         Text(
           title,

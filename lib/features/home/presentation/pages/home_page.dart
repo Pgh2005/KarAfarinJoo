@@ -74,22 +74,16 @@ class HomePage extends ConsumerWidget {
               child: _ClassListView(classes: classes, isProfessor: isProfessor),
             ),
           ),
-
           floatingActionButton: FloatingActionButton(
             backgroundColor: AppTheme.primary,
             onPressed: () async {
-              debugPrint('go to create class page student');
-
               if (isProfessor) {
-                // Navigate to create class page
-                debugPrint('go to create class page professor');
                 final result = await context.pushNamed('create-class');
-                // If class was created successfully, refresh the list
                 if (result == true) {
                   ref.invalidate(teacherClassesProvider);
                 }
               } else {
-                _openJoinClassDialog(context);
+                await context.pushNamed('join-class');
               }
             },
             child: Icon(
@@ -100,10 +94,6 @@ class HomePage extends ConsumerWidget {
         );
       },
     );
-  }
-
-  void _openJoinClassDialog(BuildContext context) {
-    // در مراحل بعد پیاده‌سازی می‌شود
   }
 }
 
