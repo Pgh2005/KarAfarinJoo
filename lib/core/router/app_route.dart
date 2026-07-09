@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/features/auth/presentation/pages/login_page.dart';
 import 'package:karafarini/features/auth/presentation/pages/signup_page.dart';
 import 'package:karafarini/features/auth/presentation/pages/splash_screen.dart';
+import 'package:karafarini/features/classes/presentation/pages/create_class_page.dart';
 import 'package:karafarini/features/profile/presentation/pages/profile_page.dart';
 import 'package:karafarini/features/home/presentation/pages/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,6 +59,11 @@ final appRouter = GoRouter(
       path: '/profile',
       name: 'profile',
       builder: (context, state) => const ProfilePage(),
+    ),
+    GoRoute(
+      path: '/create-class',
+      name: 'create-class',
+      builder: (context, state) => const CreateClassPage(),
     ),
   ],
 );

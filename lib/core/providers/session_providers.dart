@@ -5,10 +5,15 @@ final supabaseProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
-final authUserProvider = Provider<User?>((ref) {
-  return Supabase.instance.client.auth.currentUser;
+final authUserProvider = StreamProvider<User?>((ref) {
+  final supabase = ref.watch(supabaseProvider);
+  return supabase.auth.onAuthStateChange.map((event) => event.session?.user);
 });
 
 final currentUserIdProvider = Provider<String?>((ref) {
-  return ref.watch(authUserProvider)?.id;
+  final asyncUser = ref.watch(authUserProvider);
+  return switch (asyncUser) {
+    AsyncData(:final value) => value?.id,
+    _ => Supabase.instance.client.auth.currentUser?.id,
+  };
 });
