@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
@@ -73,7 +74,9 @@ class HomePage extends ConsumerWidget {
               child: _ClassListView(classes: classes, isProfessor: isProfessor),
             ),
           ),
+
           floatingActionButton: FloatingActionButton(
+            backgroundColor: AppTheme.primary,
             onPressed: () {
               if (isProfessor) {
                 _openCreateClassDialog(context);
@@ -81,7 +84,10 @@ class HomePage extends ConsumerWidget {
                 _openJoinClassDialog(context);
               }
             },
-            child: Icon(isProfessor ? Icons.add : Icons.group_add),
+            child: Icon(
+              isProfessor ? Icons.add : Icons.group_add,
+              color: AppTheme.surface,
+            ),
           ),
         );
       },
