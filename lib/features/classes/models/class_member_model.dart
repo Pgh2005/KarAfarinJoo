@@ -7,6 +7,7 @@ class ClassMemberModel {
   final DateTime joinedAt;
   final String? studentName;
   final String? studentEmail;
+  final String? studentNumber;
 
   const ClassMemberModel({
     required this.id,
@@ -17,6 +18,7 @@ class ClassMemberModel {
     required this.joinedAt,
     this.studentName,
     this.studentEmail,
+    this.studentNumber,
   });
 
   factory ClassMemberModel.fromMap(Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class ClassMemberModel {
       joinedAt: DateTime.parse(map['joined_at'] as String),
       studentName: profileMap?['full_name'] as String?,
       studentEmail: profileMap?['email'] as String?,
+      studentNumber: profileMap?['student_number'] as String?,
     );
   }
 

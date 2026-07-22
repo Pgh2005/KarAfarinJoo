@@ -11,6 +11,10 @@ class AppTheme {
   static const Color textSecondary = Color(0xFF6B7280);
   static const Color textHint = Color(0xFFADB5BD);
   static const Color divider = Color(0xFFF0F2F8);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color cardShadow = Color(0x0A1A73E8);
+  static const Color avatarBg = Color(0xFFE8F0FE);
 
   static ThemeData get light => ThemeData(
     useMaterial3: true,

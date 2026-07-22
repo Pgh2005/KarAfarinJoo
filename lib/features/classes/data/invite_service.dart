@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/join_request_model.dart';
 import '../models/join_request_with_profile_model.dart';
@@ -28,7 +27,6 @@ class InviteService {
         .eq('classes.teacher_id', teacherId)
         .eq('status', 'pending');
 
-    debugPrint('RAW INVITE RESPONSE: $response');
     return (response as List)
         .map(
           (item) =>

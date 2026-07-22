@@ -8,11 +8,12 @@ final inviteServiceProvider = Provider<InviteService>((ref) {
   return InviteService(supabase);
 });
 
-final pendingInviteRequestsProvider = FutureProvider.autoDispose<List<JoinRequestWithProfile>>((ref) async {
-  final service = ref.watch(inviteServiceProvider);
-  final userId = ref.watch(currentUserIdProvider);
+final pendingInviteRequestsProvider =
+    FutureProvider.autoDispose<List<JoinRequestWithProfile>>((ref) async {
+      final service = ref.watch(inviteServiceProvider);
+      final userId = ref.watch(currentUserIdProvider);
 
-  if (userId == null) return [];
+      if (userId == null) return [];
 
-  return service.getPendingRequestsForTeacher(userId);
-});
+      return service.getPendingRequestsForTeacher(userId);
+    });

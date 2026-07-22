@@ -246,7 +246,8 @@ class ClassService {
           joined_at,
           profiles:student_id (
             full_name,
-            email
+            email,
+            student_number
           )
         ''')
         .eq('class_id', classId)

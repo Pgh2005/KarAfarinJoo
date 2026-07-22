@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
-import 'package:karafarini/features/classes/presentation/widgets/enter_invite_code_dialog.dart';
+import 'package:karafarini/features/classes/presentation/widgets/invite/enter_invite_code_dialog.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/providers/invite_provider.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
@@ -21,10 +21,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Refresh on first load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshProviders();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshProviders());
   }
 
   void _refreshProviders() {
@@ -40,15 +37,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     return profileAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, stack) => Scaffold(
+      error: (e, _) => Scaffold(
         appBar: const AppBarBuilder(title: 'خانه'),
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'خطا در دریافت اطلاعات کاربر:\n$error',
-              textAlign: TextAlign.center,
-            ),
+          child: Text(
+            'خطا در دریافت اطلاعات کاربر:\n$e',
+            textAlign: TextAlign.center,
           ),
         ),
       ),
@@ -58,7 +52,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         }
 
         final isProfessor = profile.role == UserRole.professor;
-
         final classesAsync = isProfessor
             ? ref.watch(teacherClassesProvider)
             : ref.watch(studentClassesProvider);
@@ -73,22 +66,16 @@ class _HomePageState extends ConsumerState<HomePage> {
             actions: isProfessor
                 ? [
                     Consumer(
-                      builder: (context, ref, child) {
-                        final requestsAsync =
-                            ref.watch(pendingInviteRequestsProvider);
-                        final count = requestsAsync.maybeWhen(
-                          data: (requests) => requests.length,
-                          orElse: () => 0,
-                        );
-
+                      builder: (context, ref, _) {
+                        final count = ref
+                            .watch(pendingInviteRequestsProvider)
+                            .maybeWhen(data: (r) => r.length, orElse: () => 0);
                         return Stack(
                           children: [
                             IconButton(
                               icon: const Icon(Icons.notifications_outlined),
                               onPressed: () async {
                                 await context.pushNamed('invite-requests');
-                                // Refresh badge count and teacher classes
-                                // when returning from invite-requests page
                                 ref.invalidate(pendingInviteRequestsProvider);
                                 ref.invalidate(teacherClassesProvider);
                               },
@@ -99,7 +86,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 top: 8,
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                   ),
@@ -127,11 +114,11 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
           body: classesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
+            error: (e, _) => Center(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'خطا در دریافت کلاس‌ها:\n$error',
+                  'خطا در دریافت کلاس‌ها:\n$e',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -151,29 +138,30 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: _ClassListView(classes: classes, isProfessor: isProfessor),
             ),
           ),
-          floatingActionButton: FloatingActionButton(
+          floatingActionButton: FloatingActionButton.extended(
             backgroundColor: AppTheme.primary,
             onPressed: () async {
               if (isProfessor) {
                 final result = await context.pushNamed('create-class');
-                if (result == true) {
-                  ref.invalidate(teacherClassesProvider);
-                }
+                if (result == true) ref.invalidate(teacherClassesProvider);
               } else {
-                // Show dialog for student
                 final result = await showDialog<bool>(
                   context: context,
-                  builder: (ctx) => const EnterInviteCodeDialog(),
+                  builder: (_) => const EnterInviteCodeDialog(),
                 );
-                if (result == true) {
-                  // Request sent — refresh list in case approval is instant
-                  ref.invalidate(studentClassesProvider);
-                }
+                if (result == true) ref.invalidate(studentClassesProvider);
               }
             },
-            child: Icon(
+            icon: Icon(
               isProfessor ? Icons.add : Icons.group_add,
-              color: AppTheme.surface,
+              color: Colors.white,
+            ),
+            label: Text(
+              isProfessor ? 'کلاس جدید' : 'عضویت در کلاس',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         );
@@ -195,14 +183,45 @@ class _ClassListView extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: Center(
-              child: Text(
-                isProfessor
-                    ? 'هنوز کلاسی ایجاد نکرده‌اید'
-                    : 'هنوز عضو هیچ کلاسی نشده‌اید',
-                style: const TextStyle(fontSize: 16),
-              ),
+            height: MediaQuery.of(context).size.height * 0.65,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.school_outlined,
+                    size: 40,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isProfessor
+                      ? 'هنوز کلاسی ایجاد نکرده‌اید'
+                      : 'هنوز عضو هیچ کلاسی نشده‌اید',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isProfessor
+                      ? 'با دکمه پایین کلاس بسازید'
+                      : 'با دکمه پایین وارد کلاس شوید',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textHint,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -211,31 +230,128 @@ class _ClassListView extends StatelessWidget {
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
       itemCount: classes.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = classes[index];
-
         final details = <String>[
-          if (item.courseCode.trim().isNotEmpty) 'کد درس: ${item.courseCode}',
-          if (item.semester.trim().isNotEmpty) 'ترم: ${item.semester}',
+          if (item.courseCode.trim().isNotEmpty) item.courseCode,
+          if (item.semester.trim().isNotEmpty) item.semester,
         ];
+        final initials = item.title.trim().isNotEmpty
+            ? item.title.trim()[0]
+            : '?';
 
-        return Card(
-          child: ListTile(
-            title: Text(
-              item.title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.pushNamed('class-detail', extra: item),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.border, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    blurRadius: 12,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(
+                        child: Text(
+                          initials,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          if (details.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: details
+                                  .map(
+                                    (d) => _Chip(
+                                      label: d,
+                                      color: AppTheme.primary,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppTheme.primary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            subtitle: details.isEmpty ? null : Text(details.join(' | ')),
-            trailing: const Icon(Icons.chevron_left),
-            onTap: () {
-              context.pushNamed('class-detail', extra: item);
-            },
           ),
         );
       },
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _Chip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: color,
+        ),
+      ),
     );
   }
 }
