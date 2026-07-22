@@ -6,8 +6,11 @@ import 'package:karafarini/features/auth/presentation/pages/signup_page.dart';
 import 'package:karafarini/features/auth/presentation/pages/splash_screen.dart';
 import 'package:karafarini/features/classes/presentation/pages/create_class_page.dart';
 import 'package:karafarini/features/classes/presentation/pages/join_class_page.dart';
+import 'package:karafarini/features/classes/presentation/pages/invite_requests_page.dart';
+import 'package:karafarini/features/classes/presentation/pages/class_detail_page.dart';
 import 'package:karafarini/features/profile/presentation/pages/profile_page.dart';
 import 'package:karafarini/features/home/presentation/pages/home_page.dart';
+import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
@@ -70,6 +73,19 @@ final appRouter = GoRouter(
       path: '/join-class',
       name: 'join-class',
       builder: (context, state) => const JoinClassPage(),
+    ),
+    GoRoute(
+      path: '/invite-requests',
+      name: 'invite-requests',
+      builder: (context, state) => const InviteRequestsPage(),
+    ),
+    GoRoute(
+      path: '/class-detail',
+      name: 'class-detail',
+      builder: (context, state) {
+        final classModel = state.extra as ClassModel;
+        return ClassDetailPage(classModel: classModel);
+      },
     ),
   ],
 );

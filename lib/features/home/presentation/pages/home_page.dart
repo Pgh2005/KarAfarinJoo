@@ -4,15 +4,37 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/features/classes/presentation/widgets/enter_invite_code_dialog.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
+import 'package:karafarini/features/classes/providers/invite_provider.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh on first load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshProviders();
+    });
+  }
+
+  void _refreshProviders() {
+    ref.invalidate(studentClassesProvider);
+    ref.invalidate(teacherClassesProvider);
+    ref.invalidate(pendingInviteRequestsProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profileAsync = ref.watch(currentSessionProfileProvider);
 
     return profileAsync.when(
@@ -48,6 +70,60 @@ class HomePage extends ConsumerWidget {
               icon: const Icon(Icons.account_circle_outlined, size: 28),
               onPressed: () => context.pushNamed('profile'),
             ),
+            actions: isProfessor
+                ? [
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final requestsAsync =
+                            ref.watch(pendingInviteRequestsProvider);
+                        final count = requestsAsync.maybeWhen(
+                          data: (requests) => requests.length,
+                          orElse: () => 0,
+                        );
+
+                        return Stack(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.notifications_outlined),
+                              onPressed: () async {
+                                await context.pushNamed('invite-requests');
+                                // Refresh badge count and teacher classes
+                                // when returning from invite-requests page
+                                ref.invalidate(pendingInviteRequestsProvider);
+                                ref.invalidate(teacherClassesProvider);
+                              },
+                            ),
+                            if (count > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 18,
+                                    minHeight: 18,
+                                  ),
+                                  child: Text(
+                                    count > 9 ? '9+' : '$count',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ]
+                : null,
           ),
           body: classesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -65,6 +141,7 @@ class HomePage extends ConsumerWidget {
                 ref.invalidate(currentSessionProfileProvider);
                 if (isProfessor) {
                   ref.invalidate(teacherClassesProvider);
+                  ref.invalidate(pendingInviteRequestsProvider);
                   await ref.read(teacherClassesProvider.future);
                 } else {
                   ref.invalidate(studentClassesProvider);
@@ -83,7 +160,15 @@ class HomePage extends ConsumerWidget {
                   ref.invalidate(teacherClassesProvider);
                 }
               } else {
-                await context.pushNamed('join-class');
+                // Show dialog for student
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => const EnterInviteCodeDialog(),
+                );
+                if (result == true) {
+                  // Request sent — refresh list in case approval is instant
+                  ref.invalidate(studentClassesProvider);
+                }
               }
             },
             child: Icon(
@@ -146,7 +231,7 @@ class _ClassListView extends StatelessWidget {
             subtitle: details.isEmpty ? null : Text(details.join(' | ')),
             trailing: const Icon(Icons.chevron_left),
             onTap: () {
-              // TODO: جزئیات کلاس
+              context.pushNamed('class-detail', extra: item);
             },
           ),
         );
