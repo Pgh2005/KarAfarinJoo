@@ -40,8 +40,9 @@ class FormBuilder {
     String label,
     T value,
     List<DropdownMenuItem<T>> items,
-    ValueChanged<T?> onChanged,
-  ) {
+    ValueChanged<T?>? onChanged, {
+    bool enabled = true,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: DropdownButtonFormField<T>(
@@ -49,7 +50,11 @@ class FormBuilder {
         dropdownColor: AppTheme.cardBg,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppTheme.textSecondary),
+          labelStyle: TextStyle(
+            color: enabled
+                ? AppTheme.textSecondary
+                : AppTheme.textSecondary.withValues(alpha: 0.6),
+          ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
@@ -59,9 +64,10 @@ class FormBuilder {
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: AppTheme.primary, width: 2),
           ),
+          enabled: enabled,
         ),
         items: items,
-        onChanged: onChanged,
+        onChanged: enabled ? onChanged : null,
       ),
     );
   }
@@ -75,20 +81,4 @@ class FormBuilder {
       ),
     );
   }
-
-  // static Widget buildSaveButton(VoidCallback onPressed, BuildContext context) {
-  //   return Padding(
-  //     padding: const EdgeInsets.only(top: 24),
-  //     child: ElevatedButton(
-  //       onPressed: onPressed,
-  //       child: const Padding(
-  //         padding: EdgeInsets.symmetric(vertical: 12),
-  //         child: Text(
-  //           'ذخیره',
-  //           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 }

@@ -161,7 +161,6 @@ class _StudentMemberCard extends StatelessWidget {
               'classId': member.classId,
               'studentId': member.studentId,
               'studentName': member.studentName,
-              'isReadOnly': true.toString(),
             },
           );
         },

@@ -7,6 +7,7 @@ import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_detail_header.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/student_class_detail_section.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_members_section.dart';
+import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
 class ClassDetailPage extends ConsumerWidget {
   final ClassModel classModel;
@@ -15,7 +16,7 @@ class ClassDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isTeacherAsync = ref.watch(isTeacherForClassProvider(classModel.id));
+    final isProfessor = ref.watch(isProfessorProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
@@ -24,7 +25,6 @@ class ClassDetailPage extends ConsumerWidget {
         child: RefreshIndicator(
           color: AppTheme.primary,
           onRefresh: () async {
-            ref.invalidate(isTeacherForClassProvider(classModel.id));
             ref.invalidate(teacherClassesProvider);
             ref.invalidate(studentClassesProvider);
             ref.invalidate(classMembersProvider(classModel.id));
@@ -34,23 +34,9 @@ class ClassDetailPage extends ConsumerWidget {
             children: [
               ClassDetailHeader(classModel: classModel),
               const SizedBox(height: 24),
-              isTeacherAsync.when(
-                data: (isTeacher) {
-                  if (isTeacher) {
-                    return ClassMembersSection(classId: classModel.id);
-                  }
-
-                  return StudentClassDetailSection(classModel: classModel);
-                },
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(color: AppTheme.primary),
-                  ),
-                ),
-                error: (err, _) =>
-                    Center(child: Text('خطا در تشخیص نقش کاربر: $err')),
-              ),
+              isProfessor
+                  ? ClassMembersSection(classId: classModel.id)
+                  : StudentClassDetailSection(classModelId: classModel.id),
             ],
           ),
         ),

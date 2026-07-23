@@ -40,9 +40,3 @@ final classMembersProvider = FutureProvider.family
       final service = ref.watch(classServiceProvider);
       return service.getClassMembers(classId);
     });
-
-final isTeacherForClassProvider = FutureProvider.family
-    .autoDispose<bool, String>((ref, classId) async {
-      final teacherClasses = await ref.watch(teacherClassesProvider.future);
-      return teacherClasses.any((classItem) => classItem.id == classId);
-    });

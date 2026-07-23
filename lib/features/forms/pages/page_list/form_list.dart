@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
-import 'package:karafarini/features/forms/pages/page1/page1_personal_info.dart';
+import 'package:karafarini/features/forms/pages/page1/presentation/personal_info_page.dart';
 import 'package:karafarini/features/forms/pages/page2/page2_talent.dart';
 import 'package:karafarini/features/forms/pages/page3/page3_values.dart';
 import 'package:karafarini/features/forms/pages/page4/page4_business_selection.dart';
 import 'package:karafarini/features/forms/pages/page5/page5_product_priority.dart';
 import 'package:karafarini/features/forms/pages/page6/page6_growth_table.dart';
+import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
 class FormList extends ConsumerWidget {
   final String classId;
@@ -23,12 +24,17 @@ class FormList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isProfessor = ref.watch(isProfessorProvider);
     // لیست ساختاریافته فرم‌ها
     final List<Map<String, dynamic>> forms = [
       {
         'title': 'اطلاعات فردی و کسب و کار',
         'icon': Icons.person,
-        'page': (String cid, String sid) => PersonalInfoPage(),
+        'page': (String cid, String sid) => PersonalInfoPage(
+          classId: cid,
+          studentId: sid,
+          isProfessor: isProfessor,
+        ),
       },
       {
         'title': 'استعدادیابی',

@@ -1,41 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
-import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/core/providers/session_providers.dart';
+import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
-class StudentClassDetailSection extends StatelessWidget {
-  final ClassModel classModel;
+class StudentClassDetailSection extends ConsumerWidget {
+  final String classModelId;
 
-  const StudentClassDetailSection({super.key, required this.classModel});
+  const StudentClassDetailSection({super.key, required this.classModelId});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final studentId = ref.watch(currentUserIdProvider) ?? '';
+    final profileAsync = ref.watch(currentSessionProfileProvider);
+    final studentName = profileAsync.maybeWhen(
+      data: (profile) => profile?.fullName ?? 'دانشجو',
+      orElse: () => 'دانشجو',
+    );
+
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.info_outline_rounded, color: AppTheme.primary),
-              SizedBox(width: 8),
-              Text(
-                'اطلاعات کلاس',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
+      child: ElevatedButton.icon(
+        onPressed: () {
+          context.pushNamed(
+            'form-list',
+            queryParameters: {
+              'classId': classModelId,
+              'studentId': studentId,
+              'studentName': studentName,
+            },
+          );
+        },
+        icon: const Icon(Icons.assignment_outlined),
+        label: const Text('مشاهده و تکمیل فرم‌ها'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primary.withValues(alpha: 0.9),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
-          const SizedBox(height: 12),
-          Text(
-            'شما به عنوان دانشجو در این کلاس هستید. در این بخش می‌توانید اطلاعات مربوط به کلاس، فرم‌ها، تکالیف یا وضعیت خود را مشاهده کنید.',
-            style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.7),
-          ),
-        ],
+          elevation: 0,
+        ),
       ),
     );
   }
