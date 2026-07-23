@@ -4,8 +4,8 @@ import 'package:karafarini/features/auth/data/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:karafarini/features/auth/presentation/widgets/role_selector.dart';
-import 'package:karafarini/core/widgets/info_hint_box.dart';
-import 'package:karafarini/core/widgets/section_card.dart';
+import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
+import 'package:karafarini/features/forms/widgets/section_card.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

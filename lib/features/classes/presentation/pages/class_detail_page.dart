@@ -6,7 +6,7 @@ import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_detail_header.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/student_class_detail_section.dart';
-import 'package:karafarini/features/classes/presentation/widgets/class_detail/teacher_class_members_section.dart';
+import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_members_section.dart';
 
 class ClassDetailPage extends ConsumerWidget {
   final ClassModel classModel;
@@ -22,6 +22,7 @@ class ClassDetailPage extends ConsumerWidget {
       appBar: const AppBarBuilder(title: 'جزئیات کلاس'),
       body: SafeArea(
         child: RefreshIndicator(
+          color: AppTheme.primary,
           onRefresh: () async {
             ref.invalidate(isTeacherForClassProvider(classModel.id));
             ref.invalidate(teacherClassesProvider);
@@ -36,7 +37,7 @@ class ClassDetailPage extends ConsumerWidget {
               isTeacherAsync.when(
                 data: (isTeacher) {
                   if (isTeacher) {
-                    return TeacherClassMembersSection(classId: classModel.id);
+                    return ClassMembersSection(classId: classModel.id);
                   }
 
                   return StudentClassDetailSection(classModel: classModel);
@@ -44,7 +45,7 @@ class ClassDetailPage extends ConsumerWidget {
                 loading: () => const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(color: AppTheme.primary),
                   ),
                 ),
                 error: (err, _) =>

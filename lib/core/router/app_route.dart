@@ -8,6 +8,7 @@ import 'package:karafarini/features/classes/presentation/pages/create_class_page
 import 'package:karafarini/features/classes/presentation/pages/join_class_page.dart';
 import 'package:karafarini/features/classes/presentation/pages/invite_requests_page.dart';
 import 'package:karafarini/features/classes/presentation/pages/class_detail_page.dart';
+import 'package:karafarini/features/forms/pages/page_list/presentation/form_list.dart';
 import 'package:karafarini/features/profile/presentation/pages/profile_page.dart';
 import 'package:karafarini/features/home/presentation/pages/home_page.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
@@ -85,6 +86,21 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final classModel = state.extra as ClassModel;
         return ClassDetailPage(classModel: classModel);
+      },
+    ),
+    GoRoute(
+      path: '/form-list',
+      name: 'form-list',
+      builder: (context, state) {
+        final classId = state.uri.queryParameters['classId'] ?? '';
+        final studentId = state.uri.queryParameters['studentId'] ?? '';
+        final studentName = state.uri.queryParameters['studentName'] ?? '';
+
+        return FormList(
+          classId: classId,
+          studentId: studentId,
+          studentName: studentName,
+        );
       },
     ),
   ],

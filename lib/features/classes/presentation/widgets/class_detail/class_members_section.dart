@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 
-class TeacherClassMembersSection extends ConsumerStatefulWidget {
+class ClassMembersSection extends ConsumerStatefulWidget {
   final String classId;
 
-  const TeacherClassMembersSection({super.key, required this.classId});
+  const ClassMembersSection({super.key, required this.classId});
 
   @override
-  ConsumerState<TeacherClassMembersSection> createState() =>
+  ConsumerState<ClassMembersSection> createState() =>
       _TeacherClassMembersSectionState();
 }
 
 class _TeacherClassMembersSectionState
-    extends ConsumerState<TeacherClassMembersSection> {
+    extends ConsumerState<ClassMembersSection> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -154,7 +155,15 @@ class _StudentMemberCard extends StatelessWidget {
       ),
       child: ListTile(
         onTap: () {
-          // در آينده: نمايش جزئيات دانشجو
+          context.pushNamed(
+            'form-list',
+            queryParameters: {
+              'classId': member.classId,
+              'studentId': member.studentId,
+              'studentName': member.studentName,
+              'isReadOnly': true.toString(),
+            },
+          );
         },
         leading: CircleAvatar(
           backgroundColor: AppTheme.primary.withValues(alpha: 0.1),

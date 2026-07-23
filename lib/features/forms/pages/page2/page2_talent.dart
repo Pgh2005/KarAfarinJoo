@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
-import 'package:karafarini/core/widgets/save_button.dart';
-import 'package:karafarini/core/widgets/section_card.dart';
-import '../core/state/app_state.dart';
-import '../core/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/state/app_state.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/save_button.dart';
+import 'package:karafarini/features/forms/widgets/section_card.dart';
 
 class TalentPage extends StatefulWidget {
-  final AppState appState;
-  const TalentPage({super.key, required this.appState});
+  const TalentPage({super.key});
 
   @override
   State<TalentPage> createState() => _TalentPageState();
@@ -20,7 +19,7 @@ class _TalentPageState extends State<TalentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final model = widget.appState.talent;
+    final model = AppState().talent;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(

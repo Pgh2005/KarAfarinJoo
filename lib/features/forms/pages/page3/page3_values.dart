@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
-import 'package:karafarini/core/widgets/save_button.dart';
-import '../core/state/app_state.dart';
-import '../core/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/state/app_state.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/save_button.dart';
 
 class ValuesPage extends StatefulWidget {
-  final AppState appState;
-  const ValuesPage({super.key, required this.appState});
+  const ValuesPage({super.key});
 
   @override
   State<ValuesPage> createState() => _ValuesPageState();
@@ -18,7 +17,7 @@ class _ValuesPageState extends State<ValuesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final model = widget.appState.values;
+    final model = AppState().values;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:karafarini/features/forms/state/app_state.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
-import 'package:karafarini/core/widgets/save_button.dart';
-import 'package:karafarini/core/widgets/section_card.dart';
-import '../core/state/app_state.dart';
-import '../core/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/save_button.dart';
+import 'package:karafarini/features/forms/widgets/section_card.dart';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 class PersonalInfoPage extends StatefulWidget {
-  final AppState appState;
-  const PersonalInfoPage({super.key, required this.appState});
+  const PersonalInfoPage({super.key});
 
   @override
   State<PersonalInfoPage> createState() => _PersonalInfoPageState();
@@ -21,7 +20,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    final model = widget.appState.personalInfo;
+    final model = AppState().personalInfo;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
