@@ -40,6 +40,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   late final TextEditingController _scoreCtrl;
 
   bool _isInitialized = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     if (oldWidget.classId != widget.classId ||
         oldWidget.studentId != widget.studentId) {
       _isInitialized = false;
+      _clearControllers();
     }
   }
 
@@ -82,6 +84,21 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     _rankCtrl.dispose();
     _scoreCtrl.dispose();
     super.dispose();
+  }
+
+  void _clearControllers() {
+    _lastNameCtrl.clear();
+    _firstNameCtrl.clear();
+    _contactCtrl.clear();
+    _neighborhoodCtrl.clear();
+    _majorCtrl.clear();
+    _majorReasonCtrl.clear();
+    _ifReturnCtrl.clear();
+    _businessTitleCtrl.clear();
+    _businessSloganCtrl.clear();
+    _lifeSloganCtrl.clear();
+    _rankCtrl.clear();
+    _scoreCtrl.clear();
   }
 
   void _syncControllers(PersonalInfoModel model) {
@@ -103,6 +120,50 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     _isInitialized = true;
   }
 
+  Future<void> _handleSave(PersonalInfoNotifier notifier) async {
+    if (_isSaving) return;
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    // ۱. مقادیر کنترلرها را در State بروزرسانی می‌کنیم
+    notifier.updateState(
+      (m) => m.copyWith(
+        firstName: _firstNameCtrl.text.trim(),
+        lastName: _lastNameCtrl.text.trim(),
+        contact: _contactCtrl.text.trim(),
+        neighborhood: _neighborhoodCtrl.text.trim(),
+        major: _majorCtrl.text.trim(),
+        majorReason: _majorReasonCtrl.text.trim(),
+        ifReturn: _ifReturnCtrl.text.trim(),
+        businessTitle: _businessTitleCtrl.text.trim(),
+        businessSlogan: _businessSloganCtrl.text.trim(),
+        lifeSlogan: _lifeSloganCtrl.text.trim(),
+        rank: _rankCtrl.text.trim(),
+        score: _scoreCtrl.text.trim(),
+      ),
+    );
+
+    // ۲. متد save را فراخوانی می‌کنیم
+    final success = await notifier.saveData();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSaving = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'اطلاعات با موفقیت ذخیره شد' : 'خطا در ثبت اطلاعات',
+        ),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final params = FormParams(
@@ -111,6 +172,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     );
     final asyncState = ref.watch(personalInfoNotifierProvider(params));
     final notifier = ref.read(personalInfoNotifierProvider(params).notifier);
+    final isEditable = !widget.isProfessor;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -141,46 +203,34 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                       FormBuilder.buildTextField(
                         'نام',
                         _firstNameCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(firstName: v),
-                              ),
+                        null,
+                        controller: _firstNameCtrl,
+                        enabled: isEditable,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildTextField(
                         'نام خانوادگی',
                         _lastNameCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(lastName: v),
-                              ),
+                        null,
+                        controller: _lastNameCtrl,
+                        enabled: isEditable,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildTextField(
                         'شماره تماس',
                         _contactCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(contact: v),
-                              ),
+                        null,
+                        controller: _contactCtrl,
+                        enabled: isEditable,
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildTextField(
                         'محله (اختیاری)',
                         _neighborhoodCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(neighborhood: v),
-                              ),
+                        null,
+                        controller: _neighborhoodCtrl,
+                        enabled: isEditable,
                       ),
                     ],
                   ),
@@ -195,18 +245,15 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                       FormBuilder.buildTextField(
                         'رشته تحصیلی',
                         _majorCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(major: v),
-                              ),
+                        null,
+                        controller: _majorCtrl,
+                        enabled: isEditable,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildDropdown<String>(
                         'مقطع تحصیلی',
                         model.degree,
-                        enabled: !widget.isProfessor,
+                        enabled: isEditable,
                         const [
                           DropdownMenuItem(
                             value: 'کاردانی',
@@ -222,57 +269,51 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                             child: Text('دکتری'),
                           ),
                         ],
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) {
+                        isEditable
+                            ? (v) {
                                 if (v != null) {
                                   notifier.updateState(
                                     (m) => m.copyWith(degree: v),
                                   );
                                 }
-                              },
+                              }
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildDropdown<String>(
                         'رضایت از رشته؟',
                         model.satisfiedMajor,
-                        enabled: !widget.isProfessor,
+                        enabled: isEditable,
                         const [
                           DropdownMenuItem(value: 'بله', child: Text('بله')),
                           DropdownMenuItem(value: 'خیر', child: Text('خیر')),
                         ],
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) {
+                        isEditable
+                            ? (v) {
                                 if (v != null) {
                                   notifier.updateState(
                                     (m) => m.copyWith(satisfiedMajor: v),
                                   );
                                 }
-                              },
+                              }
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildTextField(
                         'علت انتخاب رشته',
                         _majorReasonCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(majorReason: v),
-                              ),
+                        null,
+                        controller: _majorReasonCtrl,
+                        enabled: isEditable,
                         maxLines: 3,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildTextField(
                         'اگر به گذشته برگردی، چه می‌کنی؟',
                         _ifReturnCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(ifReturn: v),
-                              ),
+                        null,
+                        controller: _ifReturnCtrl,
+                        enabled: isEditable,
                         maxLines: 2,
                       ),
                     ],
@@ -288,18 +329,15 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                       FormBuilder.buildTextField(
                         'عنوان کسب‌و‌کار',
                         _businessTitleCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(businessTitle: v),
-                              ),
+                        null,
+                        controller: _businessTitleCtrl,
+                        enabled: isEditable,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildDropdown<String>(
                         'رضایت از کسب‌و‌کار؟',
                         model.businessSatisfied,
-                        enabled: !widget.isProfessor,
+                        enabled: isEditable,
                         const [
                           DropdownMenuItem(value: 'بله', child: Text('بله')),
                           DropdownMenuItem(value: 'خیر', child: Text('خیر')),
@@ -308,15 +346,15 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                             child: Text('تا حدی'),
                           ),
                         ],
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) {
+                        isEditable
+                            ? (v) {
                                 if (v != null) {
                                   notifier.updateState(
                                     (m) => m.copyWith(businessSatisfied: v),
                                   );
                                 }
-                              },
+                              }
+                            : null,
                       ),
                     ],
                   ),
@@ -330,24 +368,18 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                       FormBuilder.buildTextField(
                         'شعار کسب‌و‌کار',
                         _businessSloganCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(businessSlogan: v),
-                              ),
+                        null,
+                        controller: _businessSloganCtrl,
+                        enabled: isEditable,
                         maxLines: 2,
                       ),
                       const SizedBox(height: 12),
                       FormBuilder.buildTextField(
                         'شعار زندگی',
                         _lifeSloganCtrl.text,
-                        enabled: !widget.isProfessor,
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) => notifier.updateState(
-                                (m) => m.copyWith(lifeSlogan: v),
-                              ),
+                        null,
+                        controller: _lifeSloganCtrl,
+                        enabled: isEditable,
                         maxLines: 2,
                       ),
                     ],
@@ -363,7 +395,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                       FormBuilder.buildDropdown<String>(
                         'جهت‌گیری ارزشی',
                         model.valueOrientation,
-                        enabled: !widget.isProfessor,
+                        enabled: isEditable,
                         const [
                           DropdownMenuItem(value: 'علم', child: Text('علم')),
                           DropdownMenuItem(value: 'قدرت', child: Text('قدرت')),
@@ -374,15 +406,15 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                             child: Text('وظیفه'),
                           ),
                         ],
-                        widget.isProfessor
-                            ? (_) {}
-                            : (v) {
+                        isEditable
+                            ? (v) {
                                 if (v != null) {
                                   notifier.updateState(
                                     (m) => m.copyWith(valueOrientation: v),
                                   );
                                 }
-                              },
+                              }
+                            : null,
                       ),
                       const SizedBox(height: 12),
 
@@ -393,9 +425,9 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                                 ? FormBuilder.buildTextField(
                                     'رتبه',
                                     _rankCtrl.text,
-                                    (v) => notifier.updateState(
-                                      (m) => m.copyWith(rank: v),
-                                    ),
+                                    null,
+                                    controller: _rankCtrl,
+                                    enabled: true,
                                     keyboardType: TextInputType.number,
                                   )
                                 : _ReadOnlyField(
@@ -410,9 +442,9 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                                 ? FormBuilder.buildTextField(
                                     'نمره',
                                     _scoreCtrl.text,
-                                    (v) => notifier.updateState(
-                                      (m) => m.copyWith(score: v),
-                                    ),
+                                    null,
+                                    controller: _scoreCtrl,
+                                    enabled: true,
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
@@ -431,26 +463,11 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
 
                   const SizedBox(height: 24),
 
+                  // دکمه ذخیره بر اساس وضعیت دسترسی استاد/دانشجو نمایش داده یا فعال می‌شود
                   SaveButton(
-                    onSave: () async {
-                      final success = await notifier.saveData();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              success
-                                  ? 'اطلاعات با موفقیت ذخیره شد'
-                                  : 'خطا در ثبت اطلاعات',
-                            ),
-                            backgroundColor: success
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    isLoading: asyncState.isLoading,
-                    isEnabled: !asyncState.isLoading,
+                    onSave: () => _handleSave(notifier),
+                    isLoading: _isSaving,
+                    isEnabled: !_isSaving && (isEditable || widget.isProfessor),
                   ),
 
                   const SizedBox(height: 32),

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/presentation/personal_info_page.dart';
-import 'package:karafarini/features/forms/pages/page2/page2_talent.dart';
+import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.dart';
 import 'package:karafarini/features/forms/pages/page3/page3_values.dart';
 import 'package:karafarini/features/forms/pages/page4/page4_business_selection.dart';
 import 'package:karafarini/features/forms/pages/page5/page5_product_priority.dart';
@@ -39,7 +39,8 @@ class FormList extends ConsumerWidget {
       {
         'title': 'استعدادیابی',
         'icon': Icons.lightbulb,
-        'page': (String cid, String sid) => TalentPage(),
+        'page': (String cid, String sid) =>
+            TalentPage(classId: cid, studentId: sid, isProfessor: isProfessor),
       },
       {
         'title': 'ارزش‌ها',
