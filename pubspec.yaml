@@ -42,6 +42,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.3.2
   share_plus: ^13.2.1
+  shamsi_date: ^1.1.1
 
 dev_dependencies:
   flutter_test:

@@ -378,16 +378,6 @@ class _ProductCriteriaRowState extends State<_ProductCriteriaRow> {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    // if (item.category.isNotEmpty) ...[
-                    //   const SizedBox(height: 3),
-                    //   Text(
-                    //     item.category,
-                    //     style: const TextStyle(
-                    //       fontSize: 11,
-                    //       color: AppTheme.textSecondary,
-                    //     ),
-                    //   ),
-                    // ],
                   ],
                 ),
               ),

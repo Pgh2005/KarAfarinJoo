@@ -7,7 +7,7 @@ import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.d
 import 'package:karafarini/features/forms/pages/page3/presentation/values_page.dart';
 import 'package:karafarini/features/forms/pages/page4/presentation/business_selection_page.dart';
 import 'package:karafarini/features/forms/pages/page5/presentation/product_priority_page.dart';
-import 'package:karafarini/features/forms/pages/page6/page6_growth_table.dart';
+import 'package:karafarini/features/forms/pages/page6/presentation/growth_table_page.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
 class FormList extends ConsumerWidget {
@@ -69,7 +69,11 @@ class FormList extends ConsumerWidget {
       {
         'title': 'جدول رشد',
         'icon': Icons.trending_up,
-        'page': (String cid, String sid) => GrowthTablePage(),
+        'page': (String cid, String sid) => GrowthTablePage(
+          classId: cid,
+          studentId: sid,
+          isProfessor: isProfessor,
+        ),
       },
     ];
 
