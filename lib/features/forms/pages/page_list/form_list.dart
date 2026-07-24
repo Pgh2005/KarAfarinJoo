@@ -4,7 +4,7 @@ import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/presentation/personal_info_page.dart';
 import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.dart';
-import 'package:karafarini/features/forms/pages/page3/page3_values.dart';
+import 'package:karafarini/features/forms/pages/page3/presentation/values_page.dart';
 import 'package:karafarini/features/forms/pages/page4/page4_business_selection.dart';
 import 'package:karafarini/features/forms/pages/page5/page5_product_priority.dart';
 import 'package:karafarini/features/forms/pages/page6/page6_growth_table.dart';
@@ -45,7 +45,8 @@ class FormList extends ConsumerWidget {
       {
         'title': 'ارزش‌ها',
         'icon': Icons.favorite,
-        'page': (String cid, String sid) => ValuesPage(),
+        'page': (String cid, String sid) =>
+            ValuesPage(classId: cid, studentId: sid, isProfessor: isProfessor),
       },
       {
         'title': 'انتخاب کسب و کار',
