@@ -6,7 +6,7 @@ import 'package:karafarini/features/forms/pages/page1/presentation/personal_info
 import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.dart';
 import 'package:karafarini/features/forms/pages/page3/presentation/values_page.dart';
 import 'package:karafarini/features/forms/pages/page4/presentation/business_selection_page.dart';
-import 'package:karafarini/features/forms/pages/page5/page5_product_priority.dart';
+import 'package:karafarini/features/forms/pages/page5/presentation/product_priority_page.dart';
 import 'package:karafarini/features/forms/pages/page6/page6_growth_table.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
@@ -60,7 +60,11 @@ class FormList extends ConsumerWidget {
       {
         'title': 'اولویت محصولات',
         'icon': Icons.shopping_bag,
-        'page': (String cid, String sid) => ProductPriorityPage(),
+        'page': (String cid, String sid) => ProductPriorityPage(
+          classId: cid,
+          studentId: sid,
+          isProfessor: isProfessor,
+        ),
       },
       {
         'title': 'جدول رشد',
