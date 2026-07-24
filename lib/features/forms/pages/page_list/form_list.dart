@@ -5,7 +5,7 @@ import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/presentation/personal_info_page.dart';
 import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.dart';
 import 'package:karafarini/features/forms/pages/page3/presentation/values_page.dart';
-import 'package:karafarini/features/forms/pages/page4/page4_business_selection.dart';
+import 'package:karafarini/features/forms/pages/page4/presentation/business_selection_page.dart';
 import 'package:karafarini/features/forms/pages/page5/page5_product_priority.dart';
 import 'package:karafarini/features/forms/pages/page6/page6_growth_table.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
@@ -51,7 +51,11 @@ class FormList extends ConsumerWidget {
       {
         'title': 'انتخاب کسب و کار',
         'icon': Icons.business,
-        'page': (String cid, String sid) => BusinessSelectionPage(),
+        'page': (String cid, String sid) => BusinessSelectionPage(
+          classId: cid,
+          studentId: sid,
+          isProfessor: isProfessor,
+        ),
       },
       {
         'title': 'اولویت محصولات',
