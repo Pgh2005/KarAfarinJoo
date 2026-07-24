@@ -7,7 +7,6 @@ import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/forms/widgets/score_card.dart';
 import 'package:karafarini/features/forms/widgets/section_card.dart';
-
 import '../models/product_priority_model.dart';
 import '../providers/product_priority_provider.dart';
 
@@ -379,16 +378,16 @@ class _ProductCriteriaRowState extends State<_ProductCriteriaRow> {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    if (item.category.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        item.category,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
+                    // if (item.category.isNotEmpty) ...[
+                    //   const SizedBox(height: 3),
+                    //   Text(
+                    //     item.category,
+                    //     style: const TextStyle(
+                    //       fontSize: 11,
+                    //       color: AppTheme.textSecondary,
+                    //     ),
+                    //   ),
+                    // ],
                   ],
                 ),
               ),
@@ -455,6 +454,43 @@ class _ProductCriteriaRowState extends State<_ProductCriteriaRow> {
               ),
             ],
           ),
+          if (item.description.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.surface.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppTheme.border.withValues(alpha: 0.7),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      item.description,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        height: 1.5,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           Row(
             children: [_buildScoreField(0, false), _buildScoreField(1, true)],
