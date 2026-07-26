@@ -28,6 +28,6 @@ class GrowthTableService {
       'class_id': classId,
       'periods': periods.map((p) => p.toJson()).toList(),
       'updated_at': DateTime.now().toIso8601String(),
-    });
+    }, onConflict: 'student_id,class_id');
   }
 }

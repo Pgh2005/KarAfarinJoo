@@ -51,6 +51,101 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
     );
   }
 
+  Future<void> _showDeleteConfirmDialog({
+    required GrowthTableNotifier notifier,
+    required int index,
+  }) async {
+    // استفاده مستقیم از context کلاس State به جای آرگومان ورودی
+    final bool confirm =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.redAccent,
+                    size: 28,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'حذف دوره',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                'آیا از حذف دوره ${index + 1} اطمینان دارید؟ این عمل بلافاصله ذخیره شده و قابل بازگشت نیست.',
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              actionsPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text(
+                    'انصراف',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text(
+                    'حذف شود',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ) ??
+        false;
+
+    // حالا این گاردِ mounted به درستی context مربوط به State را تایید می‌کند و خطا رفع می‌شود.
+    if (!mounted) return;
+    if (!confirm) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('در حال حذف و بروزرسانی دیتابیس...'),
+        duration: Duration(milliseconds: 800),
+      ),
+    );
+
+    await notifier.removePeriod(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final params = GrowthTableParams(
@@ -160,6 +255,10 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
                         index: index,
                         enabled: isEditable,
                         notifier: notifier,
+                        onDeleteTap: () => _showDeleteConfirmDialog(
+                          notifier: notifier,
+                          index: index,
+                        ),
                       );
                     },
                   ),
@@ -185,12 +284,14 @@ class _PeriodCard extends StatelessWidget {
   final int index;
   final bool enabled;
   final GrowthTableNotifier notifier;
+  final VoidCallback onDeleteTap;
 
   const _PeriodCard({
     required this.period,
     required this.index,
     required this.enabled,
     required this.notifier,
+    required this.onDeleteTap,
   });
 
   Map<String, List<MapEntry<int, GrowthMetricRow>>> _groupedMetrics() {
@@ -280,17 +381,7 @@ class _PeriodCard extends StatelessWidget {
                 const Spacer(),
                 if (enabled && index > 0)
                   IconButton(
-                    onPressed: () {
-                      notifier.removePeriod(index);
-
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('دوره با موفقیت حذف شد.'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    },
+                    onPressed: onDeleteTap,
                     icon: const Icon(
                       Icons.delete_rounded,
                       color: Colors.redAccent,

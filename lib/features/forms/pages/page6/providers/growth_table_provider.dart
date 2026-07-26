@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/growth_table_model.dart';
@@ -54,13 +55,23 @@ class GrowthTableNotifier
     });
   }
 
-  void removePeriod(int index) {
-    state.whenData((periods) {
-      if (periods.length > 1 && index < periods.length) {
-        final updated = List<GrowthPeriod>.from(periods)..removeAt(index);
-        state = AsyncValue.data(updated);
-      }
-    });
+  Future<void> removePeriod(int index) async {
+    // گرفتن مقدار فعلی بدون اجرای ناهمگام درون whenData
+    final periods = state.value;
+    if (periods == null || periods.length <= 1 || index >= periods.length) {
+      return;
+    }
+
+    final previousState = state;
+    final updated = List<GrowthPeriod>.from(periods)..removeAt(index);
+    state = AsyncValue.data(updated);
+
+    try {
+      await _service.saveData(_params.studentId, _params.classId, updated);
+    } catch (e) {
+      state = previousState;
+      debugPrint('حذف با خطا مواجه شد: $e');
+    }
   }
 
   void updateMetric(int periodIdx, int metricIdx, String field, String value) {
