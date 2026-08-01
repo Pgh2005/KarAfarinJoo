@@ -533,7 +533,7 @@ class _CriteriaRowState extends State<_CriteriaRow> {
                       labelText: bizName,
                       labelStyle: const TextStyle(
                         fontSize: 12,
-                        color: AppTheme.primary,
+                        color: AppTheme.textSecondary,
                       ),
                       errorText: error,
                       errorStyle: const TextStyle(fontSize: 9),
