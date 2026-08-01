@@ -9,12 +9,11 @@ class ProductPriorityService {
     String studentId,
     String classId,
   ) async {
+    // Use a broader select to be resilient to schema variations and ensure
+    // the parent row and nested criteria are returned if present.
     final response = await _supabase
         .from('product_priorities')
-        .select(
-          'id, prod_name_1, prod_name_2, prod_name_3, prod_name_4, '
-          'product_priority_criteria(*)',
-        )
+        .select('*, product_priority_criteria(*)')
         .eq('student_id', studentId)
         .eq('class_id', classId)
         .maybeSingle();
@@ -23,7 +22,11 @@ class ProductPriorityService {
       return ProductPriorityModel.empty();
     }
 
-    return ProductPriorityModel.fromJson(response);
+    // Supabase sometimes returns nested results as maps with lists — ensure
+    // we convert the response into a Map<String, dynamic> before parsing.
+    return ProductPriorityModel.fromJson(
+      Map<String, dynamic>.from(response as Map),
+    );
   }
 
   Future<void> savePriority(
