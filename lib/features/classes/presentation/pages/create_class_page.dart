@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/loading_indicator.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 
 class CreateClassPage extends ConsumerStatefulWidget {
@@ -330,13 +331,10 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : _createClass,
                 icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                    ? const AppLoadingIndicator(
+                        size: 20,
+                        strokeWidth: 2,
+                        color: Colors.white,
                       )
                     : const Icon(Icons.add_circle_outline),
                 label: Text(_isLoading ? 'در حال ایجاد...' : 'ایجاد کلاس'),

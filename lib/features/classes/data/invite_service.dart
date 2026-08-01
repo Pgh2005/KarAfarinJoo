@@ -25,7 +25,8 @@ class InviteService {
       )
     ''')
         .eq('classes.teacher_id', teacherId)
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        .order('created_at', ascending: false);
 
     return (response as List)
         .map(
@@ -33,6 +34,49 @@ class InviteService {
               JoinRequestWithProfile.fromMap(item as Map<String, dynamic>),
         )
         .toList();
+  }
+
+  /// Get join requests created by a student (their own requests). This is used
+  /// so students can view the status of their requests.
+  Future<List<JoinRequestWithProfile>> getRequestsForStudent(
+    String studentId,
+  ) async {
+    final response = await _supabase
+        .from('class_join_requests')
+        .select('''
+      *,
+      profiles:student_id (
+        full_name,
+        email
+      ),
+      classes!inner (
+        id,
+        title,
+        teacher_id
+      )
+    ''')
+        .eq('student_id', studentId)
+        .inFilter('status', ['pending', 'rejected'])
+        .order('created_at', ascending: false);
+
+    return (response as List)
+        .map(
+          (item) =>
+              JoinRequestWithProfile.fromMap(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  /// Delete a join request (students can dismiss their rejected requests)
+  Future<void> deleteRequest({
+    required String requestId,
+    required String studentId,
+  }) async {
+    await _supabase
+        .from('class_join_requests')
+        .delete()
+        .eq('id', requestId)
+        .eq('student_id', studentId);
   }
 
   Future<void> approveRequest({

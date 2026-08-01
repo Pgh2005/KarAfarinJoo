@@ -89,7 +89,7 @@ class ClassService {
 
     final classRow = await _supabase
         .from('classes')
-        .select('id, is_active, max_students')
+        .select('id, is_active, max_students, teacher_id')
         .eq('join_code', normalizedJoinCode)
         .maybeSingle();
 
@@ -141,6 +141,7 @@ class ClassService {
     await _supabase.from('class_join_requests').insert({
       'class_id': classId,
       'student_id': studentId,
+      'teacher_id': classRow['teacher_id'],
       'status': JoinRequestStatus.pending.value,
       'message': message?.trim().isEmpty == true ? null : message?.trim(),
     });

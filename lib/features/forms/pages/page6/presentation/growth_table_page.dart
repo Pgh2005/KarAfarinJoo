@@ -161,7 +161,27 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppTheme.surface,
-        appBar: const AppBarBuilder(title: 'جدول رشد کارآفرینی'),
+        appBar: AppBarBuilder(
+          title: 'جدول رشد کارآفرینی',
+          actions: [
+            IconButton(
+              tooltip: 'افزودن دوره',
+              onPressed: () {
+                if (!isEditable) return;
+                notifier.addPeriod();
+
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('دوره جدید با موفقیت اضافه شد.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add_circle_outline_rounded),
+            ),
+          ],
+        ),
         body: state.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(

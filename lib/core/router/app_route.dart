@@ -12,6 +12,7 @@ import 'package:karafarini/features/forms/pages/page_list/form_list.dart';
 import 'package:karafarini/features/profile/presentation/profile_page.dart';
 import 'package:karafarini/features/home/presentation/pages/home_page.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
@@ -84,8 +85,35 @@ final appRouter = GoRouter(
       path: '/class-detail',
       name: 'class-detail',
       builder: (context, state) {
-        final classModel = state.extra as ClassModel;
-        return ClassDetailPage(classModel: classModel);
+        final extra = state.extra;
+        if (extra is ClassModel) {
+          return ClassDetailPage(classModel: extra);
+        }
+        return Scaffold(
+          appBar: const AppBarBuilder(title: 'جزئیات کلاس'),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'اطلاعات کلاس نامعتبر است.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'لطفاً از صفحه خانه وارد جزئیات کلاس شوید.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       },
     ),
     GoRoute(

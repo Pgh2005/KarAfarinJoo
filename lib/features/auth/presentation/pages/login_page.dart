@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karafarini/features/auth/data/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
+import 'package:karafarini/core/widgets/loading_indicator.dart';
 import 'package:karafarini/features/auth/presentation/widgets/auth_text_field.dart';
 
 class LoginPage extends StatefulWidget {
@@ -67,18 +68,37 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Future<void> submit() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('لطفاً ایمیل و رمز عبور خود را وارد کنید.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+      }
+      return;
+    }
+
     setState(() => loading = true);
     try {
-      await AuthService.instance.signIn(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      await AuthService.instance.signIn(email: email, password: password);
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('خطا: $e')));
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(AuthService.formatAuthError(e)),
+              backgroundColor: Colors.red,
+            ),
+          );
       }
     } finally {
       if (mounted) setState(() => loading = false);
@@ -413,14 +433,11 @@ class _LoginButtonState extends State<_LoginButton>
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
                 child: widget.loading
-                    ? const SizedBox(
+                    ? const AppLoadingIndicator(
                         key: ValueKey('loading'),
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
+                        size: 24,
+                        strokeWidth: 2.5,
+                        color: Colors.white,
                       )
                     : const Row(
                         key: ValueKey('label'),
@@ -490,7 +507,7 @@ class _SignupLink extends StatelessWidget {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 50,
             child: OutlinedButton.icon(
               onPressed: () => context.push('/signup'),
               style: OutlinedButton.styleFrom(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:karafarini/features/auth/data/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
+import 'package:karafarini/core/widgets/loading_indicator.dart';
 import 'package:karafarini/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:karafarini/features/auth/presentation/widgets/role_selector.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
@@ -81,35 +82,86 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
   }
 
   Future<void> submit() async {
+    final fullName = fullNameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final studentNumber = studentNumberController.text.trim();
+    final teacherNumber = teacherNumberController.text.trim();
+
+    if (fullName.isEmpty || email.isEmpty || password.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('نام کامل، ایمیل و رمز عبور الزامی است.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+      }
+      return;
+    }
+
+    if (role == 'student' && studentNumber.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('لطفاً شماره دانشجویی خود را وارد کنید.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+      }
+      return;
+    }
+
+    if (role == 'professor' && teacherNumber.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('لطفاً شماره پرسنلی خود را وارد کنید.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+      }
+      return;
+    }
+
     setState(() => loading = true);
     try {
       await AuthService.instance.signUp(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-        fullName: fullNameController.text.trim(),
+        email: email,
+        password: password,
+        fullName: fullName,
         role: role,
-        studentNumber: role == 'student'
-            ? studentNumberController.text.trim()
-            : null,
-        teacherNumber: role == 'professor'
-            ? teacherNumberController.text.trim()
-            : null,
+        studentNumber: role == 'student' ? studentNumber : null,
+        teacherNumber: role == 'professor' ? teacherNumber : null,
         phone: phoneController.text.trim(),
         major: majorController.text.trim(),
         department: departmentController.text.trim(),
         bio: bioController.text.trim(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ثبت‌نام انجام شد. حالا وارد شو.')),
-        );
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(content: Text('ثبت‌نام انجام شد. حالا وارد شوید.')),
+          );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('خطا: $e')));
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(AuthService.formatAuthError(e)),
+              backgroundColor: Colors.red,
+            ),
+          );
       }
     } finally {
       if (mounted) setState(() => loading = false);
@@ -643,14 +695,11 @@ class _SignupButtonState extends State<_SignupButton>
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
                 child: widget.loading
-                    ? const SizedBox(
+                    ? const AppLoadingIndicator(
                         key: ValueKey('loading'),
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
+                        size: 24,
+                        strokeWidth: 2.5,
+                        color: Colors.white,
                       )
                     : const Row(
                         key: ValueKey('label'),

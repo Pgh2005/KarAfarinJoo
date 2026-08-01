@@ -7,6 +7,7 @@ import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/classes/presentation/widgets/invite/enter_invite_code_dialog.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/providers/invite_provider.dart';
+import 'package:karafarini/features/classes/models/join_request_model.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
@@ -69,7 +70,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                       builder: (context, ref, _) {
                         final count = ref
                             .watch(pendingInviteRequestsProvider)
-                            .maybeWhen(data: (r) => r.length, orElse: () => 0);
+                            .maybeWhen(
+                              data: (r) => r.where((it) => it.request.status == JoinRequestStatus.pending).length,
+                              orElse: () => 0,
+                            );
                         return Stack(
                           children: [
                             IconButton(

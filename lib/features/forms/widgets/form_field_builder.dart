@@ -28,14 +28,19 @@ class FormBuilder {
                 ? AppTheme.textSecondary
                 : AppTheme.textSecondary.withValues(alpha: 0.6),
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: AppTheme.cardBg,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppTheme.border, width: 1),
+          ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: AppTheme.primary, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 12,
+            horizontal: 18,
+            vertical: 16,
           ),
         ),
       ),

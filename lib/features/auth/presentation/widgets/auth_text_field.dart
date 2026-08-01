@@ -12,6 +12,7 @@ class AuthTextField extends StatefulWidget {
   final String? hint;
   final int maxLines;
   final List<TextInputFormatter>? inputFormatters;
+  final TextDirection? textDirection;
 
   const AuthTextField({
     super.key,
@@ -24,6 +25,7 @@ class AuthTextField extends StatefulWidget {
     this.hint,
     this.maxLines = 1,
     this.inputFormatters,
+    this.textDirection,
   });
 
   @override
@@ -46,9 +48,10 @@ class _AuthTextFieldState extends State<AuthTextField>
       vsync: this,
       duration: const Duration(milliseconds: 220),
     );
-    _glowAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _glowCtrl, curve: Curves.easeOut),
-    );
+    _glowAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeOut));
     _focus.addListener(() {
       if (_focus.hasFocus) {
         _glowCtrl.forward();
@@ -75,7 +78,9 @@ class _AuthTextFieldState extends State<AuthTextField>
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primary.withValues(alpha: _glowAnim.value * 0.18),
+                color: AppTheme.primary.withValues(
+                  alpha: _glowAnim.value * 0.18,
+                ),
                 blurRadius: 12,
                 spreadRadius: 1,
                 offset: const Offset(0, 3),
@@ -92,6 +97,10 @@ class _AuthTextFieldState extends State<AuthTextField>
         keyboardType: widget.keyboardType,
         maxLines: widget.maxLines,
         inputFormatters: widget.inputFormatters,
+        textDirection: widget.textDirection,
+        textAlign: widget.textDirection == TextDirection.rtl
+            ? TextAlign.right
+            : TextAlign.start,
         style: const TextStyle(
           fontSize: 14,
           color: AppTheme.textPrimary,
@@ -100,10 +109,7 @@ class _AuthTextFieldState extends State<AuthTextField>
         decoration: InputDecoration(
           labelText: widget.label,
           hintText: widget.hint,
-          hintStyle: const TextStyle(
-            color: AppTheme.textHint,
-            fontSize: 13,
-          ),
+          hintStyle: const TextStyle(color: AppTheme.textHint, fontSize: 13),
           prefixIcon: Padding(
             padding: const EdgeInsets.only(right: 4, left: 2),
             child: Icon(

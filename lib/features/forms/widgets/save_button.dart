@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
+import 'package:karafarini/core/widgets/loading_indicator.dart';
 
 class SaveButton extends StatelessWidget {
   final VoidCallback onSave;
@@ -16,7 +17,7 @@ class SaveButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 52,
+      height: 54,
       child: ElevatedButton.icon(
         onPressed: isEnabled && !isLoading ? onSave : null,
         style: ElevatedButton.styleFrom(
@@ -25,27 +26,23 @@ class SaveButton extends StatelessWidget {
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
         ),
-
         label: Text(
           isLoading ? 'در حال ذخیره...' : 'ذخیره اطلاعات',
           style: const TextStyle(
             fontSize: 15,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
           ),
         ),
-
         icon: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
+            ? const AppLoadingIndicator(
+                size: 20,
+                strokeWidth: 2,
+                color: Colors.white,
               )
             : const Icon(Icons.save_alt_rounded, size: 20),
       ),

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
+import 'package:karafarini/core/widgets/loading_indicator.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 
 class EnterInviteCodeDialog extends ConsumerStatefulWidget {
   const EnterInviteCodeDialog({super.key});
 
   @override
-  ConsumerState<EnterInviteCodeDialog> createState() => _EnterInviteCodeDialogState();
+  ConsumerState<EnterInviteCodeDialog> createState() =>
+      _EnterInviteCodeDialogState();
 }
 
 class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
@@ -56,10 +58,7 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطا: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -74,8 +73,8 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxWidth: 480),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -86,25 +85,39 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppTheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.group_add, color: AppTheme.primary, size: 24),
+                    child: Icon(
+                      Icons.group_add,
+                      color: AppTheme.primary,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'درخواست عضویت',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'درخواست عضویت',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'کد دعوت را وارد کرده و در صورت نیاز پیامی بنویسید',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ],
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close, size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -112,15 +125,19 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Invite Code Field
               TextFormField(
+                enabled: !_isLoading,
                 controller: _codeController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'کد دعوت *',
                   hintText: 'مثال: ABC123',
-                  prefixIcon: Icon(Icons.vpn_key),
+                  prefixIcon: const Icon(Icons.vpn_key),
+                  filled: true,
+                  fillColor: AppTheme.surface,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 textCapitalization: TextCapitalization.characters,
                 validator: (value) {
@@ -135,22 +152,24 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                 textInputAction: TextInputAction.next,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Message Field
               TextFormField(
+                enabled: !_isLoading,
                 controller: _messageController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'پیام (اختیاری)',
                   hintText: 'پیام خود را برای استاد بنویسید',
-                  prefixIcon: Icon(Icons.message_outlined),
+                  prefixIcon: const Icon(Icons.message_outlined),
                   alignLabelWithHint: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 maxLines: 3,
                 textInputAction: TextInputAction.done,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               // Info Box
               Container(
@@ -159,7 +178,7 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: AppTheme.primary.withValues(alpha: 0.3),
+                    color: AppTheme.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
@@ -169,9 +188,9 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'کد دعوت را از استاد کلاس دریافت کنید',
+                        'کد دعوت را از استاد کلاس دریافت کنید. پس از ارسال، میتوانید وضعیت درخواست خود را در بخش اعلان‌ها مشاهده کنید.',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -180,7 +199,7 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               // Action Buttons
               Row(
@@ -194,19 +213,22 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: _isLoading ? null : _submitRequest,
-                      icon: _isLoading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.send, size: 18),
-                      label: Text(_isLoading ? 'در حال ارسال...' : 'ارسال'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _isLoading
+                          ? const AppLoadingIndicator(size: 18, strokeWidth: 2, color: Colors.white)
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.send, size: 18),
+                                SizedBox(width: 8),
+                                Text('ارسال'),
+                              ],
+                            ),
                     ),
                   ),
                 ],
