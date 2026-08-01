@@ -71,183 +71,234 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 480),
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.group_add,
-                      color: AppTheme.primary,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'درخواست عضویت',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'کد دعوت را وارد کرده و در صورت نیاز پیامی بنویسید',
-                          style: TextStyle(fontSize: 13),
-                        ),
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 520),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBg,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.primary.withValues(alpha: 0.12),
+                        AppTheme.primaryLight,
                       ],
                     ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.18),
+                    ),
                   ),
-                  IconButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Invite Code Field
-              TextFormField(
-                enabled: !_isLoading,
-                controller: _codeController,
-                decoration: InputDecoration(
-                  labelText: 'کد دعوت *',
-                  hintText: 'مثال: ABC123',
-                  prefixIcon: const Icon(Icons.vpn_key),
-                  filled: true,
-                  fillColor: AppTheme.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                textCapitalization: TextCapitalization.characters,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'کد دعوت الزامی است';
-                  }
-                  if (value.trim().length != 6) {
-                    return 'کد دعوت باید ۶ کاراکتر باشد';
-                  }
-                  return null;
-                },
-                textInputAction: TextInputAction.next,
-              ),
-
-              const SizedBox(height: 12),
-
-              // Message Field
-              TextFormField(
-                enabled: !_isLoading,
-                controller: _messageController,
-                decoration: InputDecoration(
-                  labelText: 'پیام (اختیاری)',
-                  hintText: 'پیام خود را برای استاد بنویسید',
-                  prefixIcon: const Icon(Icons.message_outlined),
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                maxLines: 3,
-                textInputAction: TextInputAction.done,
-              ),
-
-              const SizedBox(height: 14),
-
-              // Info Box
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppTheme.primary.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.info_outline, color: AppTheme.primary, size: 18),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'کد دعوت را از استاد کلاس دریافت کنید. پس از ارسال، میتوانید وضعیت درخواست خود را در بخش اعلان‌ها مشاهده کنید.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppTheme.textSecondary,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary,
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: const Icon(
+                          Icons.group_add,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'درخواست عضویت',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'کد دعوت را وارد کرده و در صورت نیاز پیامی بنویسید',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close, size: 20),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // Invite Code Field
+                TextFormField(
+                  enabled: !_isLoading,
+                  controller: _codeController,
+                  decoration: InputDecoration(
+                    labelText: 'کد دعوت *',
+                    hintText: 'مثال: ABC123',
+                    prefixIcon: const Icon(Icons.vpn_key),
+                    filled: true,
+                    fillColor: AppTheme.cardBg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'کد دعوت الزامی است';
+                    }
+                    if (value.trim().length != 6) {
+                      return 'کد دعوت باید ۶ کاراکتر باشد';
+                    }
+                    return null;
+                  },
+                  textInputAction: TextInputAction.next,
+                ),
+
+                const SizedBox(height: 14),
+
+                // Message Field
+                TextFormField(
+                  enabled: !_isLoading,
+                  controller: _messageController,
+                  decoration: InputDecoration(
+                    labelText: 'پیام (اختیاری)',
+                    hintText: 'پیام خود را برای استاد بنویسید',
+                    prefixIcon: const Icon(Icons.message_outlined),
+                    alignLabelWithHint: true,
+                    filled: true,
+                    fillColor: AppTheme.cardBg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  maxLines: 3,
+                  textInputAction: TextInputAction.done,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Info Box
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AppTheme.primary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'کد دعوت را از استاد کلاس دریافت کنید. پس از ارسال، میتوانید وضعیت درخواست خود را در بخش اعلان‌ها مشاهده کنید.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.textPrimary,
+                          side: BorderSide(color: AppTheme.border),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text('انصراف'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _submitRequest,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const AppLoadingIndicator(
+                                size: 18,
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.send, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('ارسال'),
+                                ],
+                              ),
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 18),
-
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => Navigator.of(context).pop(),
-                      child: const Text('انصراف'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _submitRequest,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const AppLoadingIndicator(
-                              size: 18,
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            )
-                          : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.send, size: 18),
-                                SizedBox(width: 8),
-                                Text('ارسال'),
-                              ],
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
