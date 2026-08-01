@@ -14,7 +14,10 @@ class InviteRequestsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final requestsAsync = ref.watch(pendingInviteRequestsProvider);
     final roleAsync = ref.watch(currentUserRoleProvider);
-    final isProfessor = roleAsync.maybeWhen(data: (r) => r == 'professor' || r == 'teacher', orElse: () => false);
+    final isProfessor = roleAsync.maybeWhen(
+      data: (r) => r == 'professor' || r == 'teacher',
+      orElse: () => false,
+    );
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
@@ -109,13 +112,19 @@ class InviteRequestsPage extends ConsumerWidget {
                       ref.invalidate(pendingInviteRequestsProvider);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('اعلان حذف شد'), backgroundColor: Colors.grey),
+                          const SnackBar(
+                            content: Text('اعلان حذف شد'),
+                            backgroundColor: Colors.grey,
+                          ),
                         );
                       }
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
+                          SnackBar(
+                            content: Text('خطا: $e'),
+                            backgroundColor: Colors.red,
+                          ),
                         );
                       }
                     }
@@ -503,7 +512,8 @@ class _RequestCard extends StatelessWidget {
                     backgroundColor: AppTheme.primaryLight,
                   ),
                 ),
-              ] else if (status == JoinRequestStatus.rejected && onDelete != null) ...[
+              ] else if (status == JoinRequestStatus.rejected &&
+                  onDelete != null) ...[
                 Align(
                   alignment: Alignment.centerRight,
                   child: OutlinedButton.icon(
@@ -511,12 +521,18 @@ class _RequestCard extends StatelessWidget {
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('حذف اعلان'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
               ],
+            ],
           ],
         ),
       ),

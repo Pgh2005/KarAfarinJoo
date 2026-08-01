@@ -117,7 +117,9 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                     ),
                   ),
                   IconButton(
-                    onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                    onPressed: _isLoading
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close, size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -137,7 +139,9 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                   prefixIcon: const Icon(Icons.vpn_key),
                   filled: true,
                   fillColor: AppTheme.surface,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 textCapitalization: TextCapitalization.characters,
                 validator: (value) {
@@ -163,7 +167,9 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                   hintText: 'پیام خود را برای استاد بنویسید',
                   prefixIcon: const Icon(Icons.message_outlined),
                   alignLabelWithHint: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 maxLines: 3,
                 textInputAction: TextInputAction.done,
@@ -206,7 +212,9 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                      onPressed: _isLoading
+                          ? null
+                          : () => Navigator.of(context).pop(),
                       child: const Text('انصراف'),
                     ),
                   ),
@@ -217,10 +225,16 @@ class _EnterInviteCodeDialogState extends ConsumerState<EnterInviteCodeDialog> {
                       onPressed: _isLoading ? null : _submitRequest,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: _isLoading
-                          ? const AppLoadingIndicator(size: 18, strokeWidth: 2, color: Colors.white)
+                          ? const AppLoadingIndicator(
+                              size: 18,
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            )
                           : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

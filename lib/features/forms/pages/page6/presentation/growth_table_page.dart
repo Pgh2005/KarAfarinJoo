@@ -163,24 +163,22 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
         backgroundColor: AppTheme.surface,
         appBar: AppBarBuilder(
           title: 'جدول رشد کارآفرینی',
-          actions: [
-            IconButton(
-              tooltip: 'افزودن دوره',
-              onPressed: () {
-                if (!isEditable) return;
-                notifier.addPeriod();
+          leading: IconButton(
+            tooltip: 'افزودن دوره',
+            onPressed: () {
+              if (!isEditable) return;
+              notifier.addPeriod();
 
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('دوره جدید با موفقیت اضافه شد.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              icon: const Icon(Icons.add_circle_outline_rounded),
-            ),
-          ],
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('دوره جدید با موفقیت اضافه شد.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            icon: const Icon(Icons.add_circle_outline_rounded),
+          ),
         ),
         body: state.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -208,43 +206,6 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
                       'برای هر دوره، تاریخ شروع و هدف را مشخص کنید و برای هر شاخص مقدار فعلی، هدف و نتیجه واقعی را وارد نمایید.',
                 ),
                 const SizedBox(height: 16),
-                if (isEditable) ...[
-                  SizedBox(
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        notifier.addPeriod();
-
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('دوره جدید با موفقیت اضافه شد.'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.primary,
-                        side: const BorderSide(
-                          color: AppTheme.primary,
-                          width: 1.4,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add_circle_outline, size: 20),
-                      label: const Text(
-                        'افزودن دوره جدید',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
                 if (periods.isEmpty)
                   Container(
                     padding: const EdgeInsets.all(20),

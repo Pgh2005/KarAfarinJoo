@@ -71,7 +71,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                         final count = ref
                             .watch(pendingInviteRequestsProvider)
                             .maybeWhen(
-                              data: (r) => r.where((it) => it.request.status == JoinRequestStatus.pending).length,
+                              data: (r) => r
+                                  .where(
+                                    (it) =>
+                                        it.request.status ==
+                                        JoinRequestStatus.pending,
+                                  )
+                                  .length,
                               orElse: () => 0,
                             );
                         return Stack(
@@ -168,6 +174,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
           ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         );
       },
     );

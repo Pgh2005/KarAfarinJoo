@@ -114,7 +114,8 @@ class FormList extends ConsumerWidget {
                             (form['page'] as Function(String, String))(
                                   classId,
                                   studentId,
-                                ) as Widget,
+                                )
+                                as Widget,
                       ),
                     );
                   },
