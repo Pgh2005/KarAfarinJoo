@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/providers/personal_info_provider.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/forms/widgets/score_card.dart';
@@ -185,18 +186,21 @@ class _BusinessSelectionPageState extends ConsumerState<BusinessSelectionPage> {
                         3,
                         (i) => Padding(
                           padding: EdgeInsets.only(bottom: i < 2 ? 10 : 0),
-                          child: TextField(
+                          child: FormBuilder.buildTextField(
+                            'کسب‌و‌کار ${i + 1}',
+                            _bizNameControllers[i].text,
+                            (_) => setState(() {}),
                             controller: _bizNameControllers[i],
                             enabled: isEditable,
-                            decoration: InputDecoration(
-                              labelText: 'کسب‌و‌کار ${i + 1}',
-                              prefixIcon: const Icon(
-                                Icons.store_outlined,
-                                color: AppTheme.primary,
-                                size: 20,
-                              ),
+                            prefixIcon: const Icon(
+                              Icons.store_outlined,
+                              color: AppTheme.primary,
+                              size: 20,
                             ),
-                            onChanged: (_) => setState(() {}),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
                           ),
                         ),
                       ),
@@ -527,7 +531,10 @@ class _CriteriaRowState extends State<_CriteriaRow> {
                     ),
                     decoration: InputDecoration(
                       labelText: bizName,
-                      labelStyle: const TextStyle(fontSize: 10),
+                      labelStyle: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primary,
+                      ),
                       errorText: error,
                       errorStyle: const TextStyle(fontSize: 9),
                       contentPadding: const EdgeInsets.symmetric(
@@ -535,10 +542,10 @@ class _CriteriaRowState extends State<_CriteriaRow> {
                         vertical: 8,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
                           color: hasError
                               ? Colors.red.withValues(alpha: 0.5)
@@ -547,7 +554,7 @@ class _CriteriaRowState extends State<_CriteriaRow> {
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(
                           color: AppTheme.primary,
                           width: 1.8,

@@ -6,6 +6,7 @@ import 'package:karafarini/core/utils/date_picker/persian_date_picker_sheet.dart
 import 'package:karafarini/core/utils/thousands_separator_input_formatter.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/core/utils/app_date_formatter.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import '../models/growth_table_model.dart';
@@ -511,17 +512,19 @@ class _DateFieldState extends State<_DateField> {
           enabled: widget.enabled,
           readOnly: true,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          decoration: InputDecoration(
-            labelText: widget.label,
+          decoration: FormBuilder.inputDecoration(
+            label: widget.label,
             hintText: widget.hintText,
             prefixIcon: const Icon(
               Icons.calendar_today_outlined,
               color: AppTheme.primary,
               size: 18,
             ),
+            enabled: widget.enabled,
+            isDense: true,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
+              horizontal: 14,
+              vertical: 14,
             ),
           ),
         ),
@@ -811,21 +814,15 @@ class _SmallFieldState extends State<_SmallField> {
         fontWeight: FontWeight.w600,
         color: AppTheme.textPrimary,
       ),
-      decoration: InputDecoration(
-        labelText: widget.label,
-        labelStyle: const TextStyle(fontSize: 9.5),
+      decoration: FormBuilder.inputDecoration(
+        label: widget.label,
+        enabled: widget.enabled,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppTheme.border, width: 1.2),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 12,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppTheme.primary, width: 1.8),
-        ),
-        filled: true,
+        borderRadius: 12,
         fillColor: AppTheme.divider,
       ),
     );

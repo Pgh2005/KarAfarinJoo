@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/providers/personal_info_provider.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/forms/widgets/score_card.dart';
@@ -198,18 +199,21 @@ class _ProductPriorityPageState extends ConsumerState<ProductPriorityPage> {
                         4,
                         (i) => Padding(
                           padding: EdgeInsets.only(bottom: i < 3 ? 10 : 0),
-                          child: TextField(
+                          child: FormBuilder.buildTextField(
+                            'محصول ${i + 1}',
+                            _productNameControllers[i].text,
+                            (_) => setState(() {}),
                             controller: _productNameControllers[i],
                             enabled: isEditable,
-                            decoration: InputDecoration(
-                              labelText: 'محصول ${i + 1}',
-                              prefixIcon: Icon(
-                                Icons.shopping_bag_outlined,
-                                color: AppTheme.primary,
-                                size: 20,
-                              ),
+                            prefixIcon: Icon(
+                              Icons.shopping_bag_outlined,
+                              color: AppTheme.primary,
+                              size: 20,
                             ),
-                            onChanged: (_) => setState(() {}),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
                           ),
                         ),
                       ),
