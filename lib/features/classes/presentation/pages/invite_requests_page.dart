@@ -5,6 +5,7 @@ import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/providers/invite_provider.dart';
+import 'package:karafarini/features/classes/models/join_request_model.dart';
 
 class InviteRequestsPage extends ConsumerWidget {
   const InviteRequestsPage({super.key});
@@ -12,6 +13,8 @@ class InviteRequestsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requestsAsync = ref.watch(pendingInviteRequestsProvider);
+    final roleAsync = ref.watch(currentUserRoleProvider);
+    final isProfessor = roleAsync.maybeWhen(data: (r) => r == 'professor' || r == 'teacher', orElse: () => false);
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
@@ -66,17 +69,56 @@ class InviteRequestsPage extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = requests[index];
+
+                if (isProfessor) {
+                  return _RequestCard(
+                    studentName: item.studentName ?? 'بدون نام',
+                    studentEmail: item.studentEmail ?? '',
+                    className: item.className,
+                    message: item.request.message,
+                    createdAt: item.request.createdAt,
+                    status: item.request.status,
+                    onApprove: () async {
+                      await _handleApprove(context, ref, item);
+                    },
+                    onReject: () async {
+                      await _handleReject(context, ref, item);
+                    },
+                  );
+                }
+
+                // Student view: no approve/reject buttons. Show delete for rejected requests.
                 return _RequestCard(
                   studentName: item.studentName ?? 'بدون نام',
                   studentEmail: item.studentEmail ?? '',
                   className: item.className,
                   message: item.request.message,
                   createdAt: item.request.createdAt,
-                  onApprove: () async {
-                    await _handleApprove(context, ref, item);
-                  },
-                  onReject: () async {
-                    await _handleReject(context, ref, item);
+                  status: item.request.status,
+                  onDelete: () async {
+                    try {
+                      final userId = ref.read(currentUserIdProvider);
+                      if (userId == null) throw Exception('کاربر یافت نشد');
+
+                      final service = ref.read(inviteServiceProvider);
+                      await service.deleteRequest(
+                        requestId: item.request.id,
+                        studentId: userId,
+                      );
+
+                      ref.invalidate(pendingInviteRequestsProvider);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('اعلان حذف شد'), backgroundColor: Colors.grey),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
                   },
                 );
               },
@@ -233,8 +275,10 @@ class _RequestCard extends StatelessWidget {
   final String className;
   final String? message;
   final DateTime createdAt;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
+  final JoinRequestStatus status;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
+  final VoidCallback? onDelete;
 
   const _RequestCard({
     required this.studentName,
@@ -242,8 +286,10 @@ class _RequestCard extends StatelessWidget {
     required this.className,
     this.message,
     required this.createdAt,
-    required this.onApprove,
-    required this.onReject,
+    required this.status,
+    this.onApprove,
+    this.onReject,
+    this.onDelete,
   });
 
   String _formatDate(DateTime date) {
@@ -411,41 +457,66 @@ class _RequestCard extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onReject,
-                    icon: const Icon(Icons.close, size: 18),
-                    label: const Text('رد'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red, width: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+            if (onApprove != null || onReject != null) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onReject,
+                      icon: const Icon(Icons.close, size: 18),
+                      label: const Text('رد'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red, width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: onApprove,
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('تایید'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: onApprove,
+                      icon: const Icon(Icons.check, size: 18),
+                      label: const Text('تایید'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              // Student view: show a status or delete button when appropriate
+              if (status == JoinRequestStatus.pending) ...[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Chip(
+                    label: const Text('در حال بررسی'),
+                    backgroundColor: AppTheme.primaryLight,
+                  ),
+                ),
+              ] else if (status == JoinRequestStatus.rejected && onDelete != null) ...[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton.icon(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('حذف اعلان'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
                 ),
               ],
-            ),
           ],
         ),
       ),

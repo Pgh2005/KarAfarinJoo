@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
-import 'package:karafarini/core/widgets/loading_indicator.dart';
+import 'package:karafarini/features/forms/widgets/styled_save_button.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 
 class CreateClassPage extends ConsumerStatefulWidget {
@@ -325,25 +325,13 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
 
             const SizedBox(height: 24),
 
-            // Create Button
+            // Create Button (use shared styled save button)
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _createClass,
-                icon: _isLoading
-                    ? const AppLoadingIndicator(
-                        size: 20,
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      )
-                    : const Icon(Icons.add_circle_outline),
-                label: Text(_isLoading ? 'در حال ایجاد...' : 'ایجاد کلاس'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
+              child: StyledSaveButton(
+                onSave: _createClass,
+                label: 'ایجاد کلاس',
+                isLoading: _isLoading,
               ),
             ),
 
