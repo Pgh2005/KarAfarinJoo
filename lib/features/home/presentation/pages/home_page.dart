@@ -64,63 +64,61 @@ class _HomePageState extends ConsumerState<HomePage> {
               icon: const Icon(Icons.account_circle_outlined, size: 28),
               onPressed: () => context.pushNamed('profile'),
             ),
-            actions: isProfessor
-                ? [
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final count = ref
-                            .watch(pendingInviteRequestsProvider)
-                            .maybeWhen(
-                              data: (r) => r
-                                  .where(
-                                    (it) =>
-                                        it.request.status ==
-                                        JoinRequestStatus.pending,
-                                  )
-                                  .length,
-                              orElse: () => 0,
-                            );
-                        return Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications_outlined),
-                              onPressed: () async {
-                                await context.pushNamed('invite-requests');
-                                ref.invalidate(pendingInviteRequestsProvider);
-                                ref.invalidate(teacherClassesProvider);
-                              },
+            actions: [
+              Consumer(
+                builder: (context, ref, _) {
+                  final count = ref
+                      .watch(pendingInviteRequestsProvider)
+                      .maybeWhen(
+                        data: (r) => r
+                            .where(
+                              (it) =>
+                                  it.request.status ==
+                                  JoinRequestStatus.pending,
+                            )
+                            .length,
+                        orElse: () => 0,
+                      );
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined),
+                        onPressed: () async {
+                          await context.pushNamed('invite-requests');
+                          ref.invalidate(pendingInviteRequestsProvider);
+                          ref.invalidate(teacherClassesProvider);
+                        },
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
                             ),
-                            if (count > 0)
-                              Positioned(
-                                right: 8,
-                                top: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 18,
-                                    minHeight: 18,
-                                  ),
-                                  child: Text(
-                                    count > 9 ? '9+' : '$count',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              count > 9 ? '9+' : '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
-                          ],
-                        );
-                      },
-                    ),
-                  ]
-                : null,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
           body: classesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
