@@ -1,17 +1,18 @@
-# karafarini
+## معرفی پروژه
 
-A new Flutter project.
+**کارآفرین‌جو** یک اپلیکیشن Flutter برای مدیریت کلاس‌ها و فرم‌های درس کارآفرینی است.
 
-## Getting Started
+در این برنامه، استاد می‌تواند کلاس خود را ایجاد کرده و کد دعوت اختصاصی آن را در اختیار دانشجویان قرار دهد. دانشجویان پس از عضویت در کلاس، فرم‌ها و اطلاعات مرتبط با فعالیت‌های درس کارآفرینی را تکمیل می‌کنند و استاد می‌تواند اطلاعات ثبت‌شده، اعضای کلاس و درخواست‌های عضویت را مشاهده و مدیریت کند.
 
-This project is a starting point for a Flutter application.
+### امکانات اصلی
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- ایجاد و مدیریت کلاس توسط استاد
+- عضویت دانشجو با کد دعوت
+- مدیریت درخواست‌های عضویت
+- تکمیل فرم‌های اختصاصی درس کارآفرینی
+- مشاهده اطلاعات و فرم‌های دانشجویان
+- ذخیره‌سازی اطلاعات با Supabase
+- کنترل دسترسی کاربران با PostgreSQL RLS
+- مدیریت وضعیت برنامه با Riverpod
+- پشتیبانی از وضعیت آفلاین و خطاهای اتصال
+  
