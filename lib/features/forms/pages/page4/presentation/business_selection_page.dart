@@ -362,8 +362,8 @@ class _CriteriaRow extends StatefulWidget {
 }
 
 class _CriteriaRowState extends State<_CriteriaRow> {
-  late final TextEditingController _weightCtrl;
-  late final List<TextEditingController> _scoreCtrl;
+  late TextEditingController _weightCtrl;
+  late List<TextEditingController> _scoreCtrl;
 
   @override
   void initState() {
@@ -375,6 +375,20 @@ class _CriteriaRowState extends State<_CriteriaRow> {
       3,
       (i) => TextEditingController(text: widget.item.scores[i]),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant _CriteriaRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newWeight = widget.item.weight == 0 ? '' : widget.item.weight.toString();
+    if (_weightCtrl.text != newWeight) {
+      _weightCtrl.text = newWeight;
+    }
+    for (int i = 0; i < 3; i++) {
+      if (_scoreCtrl[i].text != widget.item.scores[i]) {
+        _scoreCtrl[i].text = widget.item.scores[i];
+      }
+    }
   }
 
   @override
