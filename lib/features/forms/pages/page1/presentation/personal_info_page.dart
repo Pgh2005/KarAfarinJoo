@@ -4,6 +4,8 @@ import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/models/personal_info_model.dart';
 import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/form_progress.dart';
+import 'package:karafarini/features/forms/widgets/progress_bar_widget.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/forms/widgets/section_card.dart';
 import '../providers/personal_info_provider.dart';
@@ -190,11 +192,19 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
           data: (model) {
             _syncControllers(model);
 
+            final progress = model.progress;
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // ── Progress Bar ──
+                  FormProgressBar(
+                    percent: progress.percent,
+                    showLabel: true,
+                  ),
+                  const SizedBox(height: 16),
                   // ── بخش اطلاعات شخصی ──
                   SectionCard(
                     icon: Icons.person_outline_rounded,

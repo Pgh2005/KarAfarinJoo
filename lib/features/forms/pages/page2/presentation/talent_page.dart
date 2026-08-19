@@ -5,6 +5,8 @@ import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page2/models/talent_model.dart';
 import 'package:karafarini/features/forms/pages/page2/providers/talent_provider.dart';
 import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/form_progress.dart';
+import 'package:karafarini/features/forms/widgets/progress_bar_widget.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/forms/widgets/section_card.dart';
 
@@ -188,11 +190,19 @@ class _TalentPageState extends ConsumerState<TalentPage> {
           data: (model) {
             _syncControllers(model);
 
+            final progress = model.progress;
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // ── Progress Bar ──
+                  FormProgressBar(
+                    percent: progress.percent,
+                    showLabel: true,
+                  ),
+                  const SizedBox(height: 16),
                   SectionCard(
                     icon: Icons.psychology_outlined,
                     title: 'اطلاعات کلی استعداد',
