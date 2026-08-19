@@ -366,7 +366,7 @@ class _LoginHeaderState extends State<_LoginHeader>
                             height: 130,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(38),
+                              borderRadius: BorderRadius.circular(35),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.2),
