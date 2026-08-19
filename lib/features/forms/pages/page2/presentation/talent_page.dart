@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:karafarini/features/forms/pages/page2/models/talent_model.dart';
 import 'package:karafarini/features/forms/pages/page2/providers/talent_provider.dart';
 import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
@@ -198,11 +199,13 @@ class _TalentPageState extends ConsumerState<TalentPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Progress Bar ──
-                  FormProgressBar(
-                    percent: progress.percent,
-                    showLabel: true,
-                  ),
+                  FormProgressBar(percent: progress.percent, showLabel: true),
                   const SizedBox(height: 16),
+
+                  // ── Clifton Strengths Test Link ──
+                  _CliftonTestBanner(isEditable: isEditable),
+                  const SizedBox(height: 16),
+
                   SectionCard(
                     icon: Icons.psychology_outlined,
                     title: 'اطلاعات کلی استعداد',
@@ -315,6 +318,128 @@ class _TalentPageState extends ConsumerState<TalentPage> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _CliftonTestBanner extends StatelessWidget {
+  final bool isEditable;
+
+  const _CliftonTestBanner({required this.isEditable});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF6C63FF).withValues(alpha: 0.08),
+            AppTheme.cardBg,
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6C63FF).withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: isEditable
+              ? () async {
+                  final uri = Uri.parse(
+                    'https://esanj.ir/clifton-strengths-test',
+                  );
+                  try {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('امکان باز کردن لینک وجود ندارد'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                }
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Icon container
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6C63FF).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.psychology_rounded,
+                    color: Color(0xFF6C63FF),
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // Text content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'تست استعداد یابی کلیفتون',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isEditable
+                            ? 'برای شرکت در آزمون کلیک کنید و نتیجه را در فرم وارد نمایید'
+                            : 'نتیجه آزمون استعدادیابی کلیفتون',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Arrow or link icon
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    isEditable ? Icons.open_in_new_rounded : Icons.link,
+                    color: const Color(0xFF6C63FF),
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

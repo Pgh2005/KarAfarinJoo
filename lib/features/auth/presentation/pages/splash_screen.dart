@@ -17,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _textCtrl;
   late final AnimationController _taglineCtrl;
   late final AnimationController _dotsCtrl;
+  late final AnimationController _glowCtrl;
 
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
@@ -24,6 +25,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<Offset> _textSlide;
   late final Animation<double> _taglineOpacity;
   late final Animation<double> _dotsOpacity;
+  late final Animation<double> _glowPulse;
 
   final _supabase = Supabase.instance.client;
 
@@ -82,6 +84,15 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _dotsCtrl, curve: Curves.easeIn));
 
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+    _glowPulse = Tween<double>(
+      begin: 0.3,
+      end: 0.7,
+    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
+
     _startSequence();
   }
 
@@ -94,6 +105,7 @@ class _SplashScreenState extends State<SplashScreen>
     await _taglineCtrl.forward();
     await Future.delayed(const Duration(milliseconds: 150));
     await _dotsCtrl.forward();
+    _glowCtrl.repeat(reverse: true);
     await Future.delayed(const Duration(milliseconds: 1200));
 
     if (!mounted) return;
@@ -113,6 +125,7 @@ class _SplashScreenState extends State<SplashScreen>
     _textCtrl.dispose();
     _taglineCtrl.dispose();
     _dotsCtrl.dispose();
+    _glowCtrl.dispose();
     super.dispose();
   }
 
@@ -146,12 +159,65 @@ class _SplashScreenState extends State<SplashScreen>
                         scale: _logoScale,
                         child: FadeTransition(
                           opacity: _logoOpacity,
-                          child: SizedBox(
-                            width: 180,
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.cover,
-                            ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Outer glow ring
+                              AnimatedBuilder(
+                                animation: _glowCtrl,
+                                builder: (context, child) {
+                                  return Container(
+                                    width: 180,
+                                    height: 180,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(44),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: _glowPulse.value * 0.3),
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.white.withValues(alpha: _glowPulse.value * 0.15),
+                                          blurRadius: 40,
+                                          spreadRadius: 5,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Logo container
+                              Container(
+                                width: 140,
+                                height: 140,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(36),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.15),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      blurRadius: 20,
+                                      spreadRadius: -2,
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: Image.asset(
+                                      'assets/images/logo.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
