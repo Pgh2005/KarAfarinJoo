@@ -30,7 +30,11 @@ class StyledSaveButton extends StatelessWidget {
           ),
         ),
         icon: isLoading
-            ? const AppLoadingIndicator(size: 20, strokeWidth: 2, color: Colors.white)
+            ? const AppLoadingIndicator(
+                size: 20,
+                strokeWidth: 2,
+                color: Colors.white,
+              )
             : const Icon(Icons.save_alt_rounded, size: 20),
         label: Text(
           isLoading ? 'در حال ذخیره...' : label,

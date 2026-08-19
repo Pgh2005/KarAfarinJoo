@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:karafarini/features/forms/pages/page1/providers/personal_info_provider.dart'; 
+import 'package:karafarini/features/forms/pages/page1/providers/personal_info_provider.dart';
 import '../models/values_model.dart';
 import '../services/values_service.dart';
 
