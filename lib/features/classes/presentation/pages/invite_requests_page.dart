@@ -19,61 +19,152 @@ class InviteRequestsPage extends ConsumerWidget {
       orElse: () => false,
     );
 
-    return Scaffold(
-      backgroundColor: AppTheme.surface,
-      appBar: const AppBarBuilder(
-        title: 'درخواست‌های عضویت',
-        automaticallyImplyLeading: true,
-      ),
-      body: requestsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'خطا در دریافت درخواست‌ها:\n$error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: AppTheme.surface,
+        appBar: const AppBarBuilder(
+          title: 'درخواست‌های عضویت',
+          automaticallyImplyLeading: true,
         ),
-        data: (requests) {
-          if (requests.isEmpty) {
-            return Center(
+        body: requestsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    size: 80,
-                    color: AppTheme.textSecondary.withValues(alpha: 0.4),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: Colors.red.shade400,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'درخواستی وجود ندارد',
+                  const SizedBox(height: 20),
+                  const Text(
+                    'خطا در دریافت درخواست‌ها',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$error',
+                    style: const TextStyle(
+                      fontSize: 13,
                       color: AppTheme.textSecondary,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
-            );
-          }
+            ),
+          ),
+          data: (requests) {
+            if (requests.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.65,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.primary.withValues(alpha: 0.1),
+                                AppTheme.primaryLight,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppTheme.primary.withValues(alpha: 0.15),
+                              width: 2,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.inbox_outlined,
+                            size: 40,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'درخواستی وجود ندارد',
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 40),
+                          child: Text(
+                            'هنوز هیچ درخواست عضویتی ثبت نشده است',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textHint,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(pendingInviteRequestsProvider);
-              await ref.read(pendingInviteRequestsProvider.future);
-            },
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: requests.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = requests[index];
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(pendingInviteRequestsProvider);
+                await ref.read(pendingInviteRequestsProvider.future);
+              },
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: requests.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final item = requests[index];
 
-                if (isProfessor) {
+                  if (isProfessor) {
+                    return _RequestCard(
+                      studentName: item.studentName ?? 'بدون نام',
+                      studentEmail: item.studentEmail ?? '',
+                      className: item.className,
+                      message: item.request.message,
+                      createdAt: item.request.createdAt,
+                      status: item.request.status,
+                      rejectionReason: item.request.rejectionReason,
+                      isStudentView: false,
+                      onApprove: () async {
+                        await _handleApprove(context, ref, item);
+                      },
+                      onReject: () async {
+                        await _handleReject(context, ref, item);
+                      },
+                    );
+                  }
+
+                  // Student view: no approve/reject buttons. Show delete for rejected requests.
                   return _RequestCard(
                     studentName: item.studentName ?? 'بدون نام',
                     studentEmail: item.studentEmail ?? '',
@@ -82,62 +173,44 @@ class InviteRequestsPage extends ConsumerWidget {
                     createdAt: item.request.createdAt,
                     status: item.request.status,
                     rejectionReason: item.request.rejectionReason,
-                    isStudentView: false,
-                    onApprove: () async {
-                      await _handleApprove(context, ref, item);
-                    },
-                    onReject: () async {
-                      await _handleReject(context, ref, item);
+                    isStudentView: true,
+                    onDelete: () async {
+                      try {
+                        final userId = ref.read(currentUserIdProvider);
+                        if (userId == null) throw Exception('کاربر یافت نشد');
+
+                        final service = ref.read(inviteServiceProvider);
+                        await service.deleteRequest(
+                          requestId: item.request.id,
+                          studentId: userId,
+                        );
+
+                        ref.invalidate(pendingInviteRequestsProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('اعلان حذف شد'),
+                              backgroundColor: Colors.grey,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('خطا: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
                     },
                   );
-                }
-
-                // Student view: no approve/reject buttons. Show delete for rejected requests.
-                return _RequestCard(
-                  studentName: item.studentName ?? 'بدون نام',
-                  studentEmail: item.studentEmail ?? '',
-                  className: item.className,
-                  message: item.request.message,
-                  createdAt: item.request.createdAt,
-                  status: item.request.status,
-                  rejectionReason: item.request.rejectionReason,
-                  isStudentView: true,
-                  onDelete: () async {
-                    try {
-                      final userId = ref.read(currentUserIdProvider);
-                      if (userId == null) throw Exception('کاربر یافت نشد');
-
-                      final service = ref.read(inviteServiceProvider);
-                      await service.deleteRequest(
-                        requestId: item.request.id,
-                        studentId: userId,
-                      );
-
-                      ref.invalidate(pendingInviteRequestsProvider);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('اعلان حذف شد'),
-                            backgroundColor: Colors.grey,
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('خطا: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                );
-              },
-            ),
-          );
-        },
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -148,19 +221,47 @@ class InviteRequestsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تایید درخواست'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.green, size: 24),
+            SizedBox(width: 8),
+            Text('تایید درخواست'),
+          ],
+        ),
         content: Text(
           'آیا می‌خواهید $studentName را به کلاس "${item.className}" اضافه کنید؟',
+          style: const TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('انصراف'),
+            child: const Text(
+              'انصراف',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('تایید'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              'تایید',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -181,8 +282,6 @@ class InviteRequestsPage extends ConsumerWidget {
       );
 
       ref.invalidate(pendingInviteRequestsProvider);
-      // Invalidate student classes so the student sees the new class
-      // on their next home screen visit
       ref.invalidate(studentClassesProvider);
 
       if (context.mounted) {
@@ -211,12 +310,22 @@ class InviteRequestsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('رد درخواست'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.cancel_rounded, color: Colors.red, size: 24),
+            SizedBox(width: 8),
+            Text('رد درخواست'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('آیا می‌خواهید درخواست $studentName را رد کنید؟'),
+            Text(
+              'آیا می‌خواهید درخواست $studentName را رد کنید؟',
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: reasonController,
@@ -228,15 +337,35 @@ class InviteRequestsPage extends ConsumerWidget {
             ),
           ],
         ),
+        actionsPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('انصراف'),
+            child: const Text(
+              'انصراف',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('رد کردن'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              'رد کردن',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -333,9 +462,9 @@ class _RequestCard extends StatelessWidget {
         border: Border.all(color: AppTheme.border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppTheme.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -350,13 +479,20 @@ class _RequestCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primary.withValues(alpha: 0.1),
+                        AppTheme.primaryLight,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.person_outline,
                     color: AppTheme.primary,
-                    size: 24,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -367,15 +503,16 @@ class _RequestCard extends StatelessWidget {
                       Text(
                         studentName,
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       if (studentEmail.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           studentEmail,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppTheme.textSecondary,
                           ),
@@ -386,7 +523,10 @@ class _RequestCard extends StatelessWidget {
                 ),
                 Text(
                   _formatDate(createdAt),
-                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textHint,
+                  ),
                 ),
               ],
             ),
@@ -395,18 +535,18 @@ class _RequestCard extends StatelessWidget {
 
             // Notification description line
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: AppTheme.primaryLight,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppTheme.primary.withValues(alpha: 0.2),
+                  color: AppTheme.primary.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.notifications_outlined,
                     size: 16,
                     color: AppTheme.primary,
@@ -417,7 +557,7 @@ class _RequestCard extends StatelessWidget {
                       isStudentView
                           ? 'درخواست عضویت شما در کلاس "$className" ثبت شد.'
                           : '$studentName درخواست عضویت در کلاس "$className" را ارسال کرده است.',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AppTheme.textPrimary,
                         height: 1.4,
@@ -434,21 +574,21 @@ class _RequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppTheme.divider,
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: AppTheme.border, width: 1),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
                         Icon(
                           Icons.message_outlined,
                           size: 14,
                           color: AppTheme.textSecondary,
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text(
                           'پیام دانشجو:',
                           style: TextStyle(
@@ -462,7 +602,7 @@ class _RequestCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       message!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AppTheme.textPrimary,
                         height: 1.4,
@@ -473,7 +613,7 @@ class _RequestCard extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
             // Action Buttons
             if (onApprove != null || onReject != null) ...[
@@ -486,7 +626,10 @@ class _RequestCard extends StatelessWidget {
                       label: const Text('رد'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red, width: 1.5),
+                        side: BorderSide(
+                          color: Colors.red.withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -503,6 +646,7 @@ class _RequestCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
+                        elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -513,7 +657,7 @@ class _RequestCard extends StatelessWidget {
                 ],
               ),
             ] else ...[
-              // Student view: show a status or delete button when appropriate
+              // Student view
               if (status == JoinRequestStatus.pending) ...[
                 Container(
                   width: double.infinity,
@@ -522,7 +666,7 @@ class _RequestCard extends StatelessWidget {
                     color: AppTheme.primaryLight,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: AppTheme.primary.withValues(alpha: 0.18),
+                      color: AppTheme.primary.withValues(alpha: 0.15),
                       width: 1,
                     ),
                   ),
@@ -532,11 +676,11 @@ class _RequestCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary.withValues(alpha: 0.14),
+                          color: AppTheme.primary.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.hourglass_top,
+                        child: const Icon(
+                          Icons.hourglass_top_rounded,
                           size: 20,
                           color: AppTheme.primary,
                         ),
@@ -546,7 +690,7 @@ class _RequestCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'در حال بررسی',
                               style: TextStyle(
                                 fontSize: 15,
@@ -557,7 +701,7 @@ class _RequestCard extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               'درخواست شما برای کلاس "$className" ثبت شد و هم‌اکنون در دست بررسی است. به زودی نتیجه اعلام می‌شود.',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: AppTheme.textSecondary,
                                 height: 1.5,
@@ -574,10 +718,10 @@ class _RequestCard extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppTheme.warning.withValues(alpha: 0.12),
+                    color: AppTheme.warning.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: AppTheme.warning.withValues(alpha: 0.28),
+                      color: AppTheme.warning.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -587,11 +731,11 @@ class _RequestCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppTheme.warning.withValues(alpha: 0.2),
+                          color: AppTheme.warning.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.error_outline,
+                        child: const Icon(
+                          Icons.error_outline_rounded,
                           size: 20,
                           color: AppTheme.warning,
                         ),
@@ -601,7 +745,7 @@ class _RequestCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'درخواست رد شد',
                               style: TextStyle(
                                 fontSize: 15,
@@ -612,7 +756,7 @@ class _RequestCard extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               'متاسفانه درخواست شما برای کلاس "$className" رد شده است. لطفاً دلیل را بررسی کنید یا این اعلان را حذف کنید.',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: AppTheme.textSecondary,
                                 height: 1.5,
@@ -624,33 +768,33 @@ class _RequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppTheme.divider,
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppTheme.border, width: 1),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'دلیل رد',
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         rejectionReason != null &&
                                 rejectionReason!.trim().isNotEmpty
                             ? rejectionReason!
                             : 'هیچ توضیحی ثبت نشده است.',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
                           color: AppTheme.textSecondary,
                           height: 1.5,
@@ -659,22 +803,25 @@ class _RequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
                   child: OutlinedButton.icon(
                     onPressed: onDelete,
-                    icon: const Icon(Icons.delete_outline),
+                    icon: const Icon(Icons.delete_outline, size: 18),
                     label: const Text('حذف اعلان'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.warning,
-                      side: BorderSide(color: AppTheme.warning, width: 1.5),
+                      side: BorderSide(
+                        color: AppTheme.warning.withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
-                        vertical: 12,
+                        vertical: 10,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
