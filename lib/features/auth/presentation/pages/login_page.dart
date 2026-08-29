@@ -238,7 +238,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 // Header with logo and gradient background
 // ──────────────────────────────────────────────────────────────────────────────
 
-class _LoginHeader extends StatelessWidget {
+class _LoginHeader extends StatefulWidget {
   final double screenHeight;
   final Animation<double> logoScale;
   final Animation<double> logoFade;
@@ -250,10 +250,39 @@ class _LoginHeader extends StatelessWidget {
   });
 
   @override
+  State<_LoginHeader> createState() => _LoginHeaderState();
+}
+
+class _LoginHeaderState extends State<_LoginHeader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _glowCtrl;
+  late final Animation<double> _glowPulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+    _glowPulse = Tween<double>(
+      begin: 0.3,
+      end: 0.8,
+    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
+    _glowCtrl.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _glowCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: screenHeight * 0.40,
+      height: widget.screenHeight * 0.42,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
@@ -261,33 +290,33 @@ class _LoginHeader extends StatelessWidget {
           colors: [AppTheme.primaryDark, AppTheme.primary, Color(0xFF2196F3)],
           stops: [0.0, 0.5, 1.0],
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(44)),
       ),
       child: SafeArea(
         child: Stack(
           children: [
             // Decorative shapes
             Positioned(
-              top: -40,
-              right: -40,
-              child: Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 30,
-              left: -50,
+              top: -50,
+              right: -50,
               child: Container(
                 width: 180,
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: Colors.white.withValues(alpha: 0.07),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: -60,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
                 ),
               ),
             ),
@@ -297,40 +326,78 @@ class _LoginHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ScaleTransition(
-                    scale: logoScale,
+                    scale: widget.logoScale,
                     child: FadeTransition(
-                      opacity: logoFade,
-                      child: Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 2,
+                      opacity: widget.logoFade,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer glow ring
+                          AnimatedBuilder(
+                            animation: _glowCtrl,
+                            builder: (context, child) {
+                              return Container(
+                                width: 165,
+                                height: 165,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(44),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(
+                                      alpha: _glowPulse.value * 0.35,
+                                    ),
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withValues(
+                                        alpha: _glowPulse.value * 0.2,
+                                      ),
+                                      blurRadius: 40,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                          // Logo container
+                          Container(
+                            width: 130,
+                            height: 130,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(35),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 35,
+                                  offset: const Offset(0, 12),
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  blurRadius: 15,
+                                  spreadRadius: -3,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(28),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            fit: BoxFit.cover,
+                            child: Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(28),
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
                   FadeTransition(
-                    opacity: logoFade,
+                    opacity: widget.logoFade,
                     child: const Text(
                       'کارآفرین‌جو',
                       style: TextStyle(
@@ -343,7 +410,7 @@ class _LoginHeader extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   FadeTransition(
-                    opacity: logoFade,
+                    opacity: widget.logoFade,
                     child: Text(
                       'مسیر رشد کسب‌و‌کار شما',
                       style: TextStyle(

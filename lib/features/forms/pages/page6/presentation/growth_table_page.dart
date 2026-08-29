@@ -7,7 +7,9 @@ import 'package:karafarini/core/utils/thousands_separator_input_formatter.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/core/utils/app_date_formatter.dart';
 import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/form_progress.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
+import 'package:karafarini/features/forms/widgets/progress_bar_widget.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import '../models/growth_table_model.dart';
 import '../providers/growth_table_provider.dart';
@@ -197,12 +199,20 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
               ),
             ),
           ),
-          data: (periods) => SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const InfoHintBox(
+          data: (periods) {
+            final progress = periods.progress;
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Progress Bar ──
+                  FormProgressBar(
+                    percent: progress.percent,
+                    showLabel: true,
+                  ),
+                  const SizedBox(height: 16),
+                  const InfoHintBox(
                   text:
                       'برای هر دوره، تاریخ شروع و هدف را مشخص کنید و برای هر شاخص مقدار فعلی، هدف و نتیجه واقعی را وارد نمایید.',
                 ),
@@ -254,7 +264,8 @@ class _GrowthTablePageState extends ConsumerState<GrowthTablePage> {
                 const SizedBox(height: 32),
               ],
             ),
-          ),
+          );
+          },
         ),
       ),
     );

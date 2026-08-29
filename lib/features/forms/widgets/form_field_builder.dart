@@ -95,13 +95,13 @@ class FormBuilder {
         decoration: BoxDecoration(
           color: AppTheme.cardBg,
           borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.cardShadow,
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.cardShadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
         ),
         child: TextFormField(
           controller: controller,

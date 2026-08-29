@@ -119,3 +119,11 @@ lib/generated_plugin_registrant.dart
 migrate_working_dir/
 *.pyc
 *.class
+
+# =========================
+# AI / Agent tool configs
+# =========================
+.agents/
+.claude/
+.freebuff/
+skills-lock.json

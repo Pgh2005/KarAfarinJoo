@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:karafarini/features/forms/pages/page1/providers/personal_info_provider.dart';
@@ -36,8 +37,11 @@ class ProductPriorityNotifier
         _params.studentId,
         _params.classId,
       );
+      debugPrint('[ProductPriority] Loaded: id=${data.id}, names=${data.productNames}, criteriaCount=${data.criteria.length}');
+      debugPrint('[ProductPriority] First criterion weight=${data.criteria.first.weight}, scores=${data.criteria.first.scores}');
       state = AsyncData(data);
     } catch (e, st) {
+      debugPrint('[ProductPriority] Error loading: $e');
       state = AsyncError(e, st);
     }
   }

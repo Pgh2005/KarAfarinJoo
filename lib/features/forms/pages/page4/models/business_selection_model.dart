@@ -18,13 +18,24 @@ class BusinessCriterionModel {
       title: json['criterion_title'] as String? ?? '',
       category: json['category'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      weight: json['weight'] as int? ?? 0,
+      weight: (json['weight'] as num?)?.toInt() ?? 0,
       scores: [
-        json['score_1'] as String? ?? '',
-        json['score_2'] as String? ?? '',
-        json['score_3'] as String? ?? '',
+        _toStringScore(json['score_1']),
+        _toStringScore(json['score_2']),
+        _toStringScore(json['score_3']),
       ],
     );
+  }
+
+  /// Safely convert score values that may come as int, double, or String from Supabase.
+  static String _toStringScore(dynamic value) {
+    if (value == null) return '';
+    if (value is String) return value;
+    if (value is num) {
+      if (value == value.roundToDouble()) return value.toInt().toString();
+      return value.toString();
+    }
+    return value.toString();
   }
 
   Map<String, dynamic> toJson(String selectionId) => {

@@ -4,7 +4,9 @@ import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/forms/pages/page1/providers/personal_info_provider.dart';
 import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
+import 'package:karafarini/features/forms/widgets/form_progress.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
+import 'package:karafarini/features/forms/widgets/progress_bar_widget.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/forms/widgets/score_card.dart';
 import 'package:karafarini/features/forms/widgets/section_card.dart';
@@ -165,11 +167,19 @@ class _BusinessSelectionPageState extends ConsumerState<BusinessSelectionPage> {
             final anyScore = totals.any((t) => t > 0);
             final grouped = _groupCriteria(model.criteria);
 
+            final progress = model.progress;
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // ── Progress Bar ──
+                  FormProgressBar(
+                    percent: progress.percent,
+                    showLabel: true,
+                  ),
+                  const SizedBox(height: 16),
                   SectionCard(
                     icon: Icons.business_outlined,
                     title: 'نام کسب‌و‌کارها',
@@ -352,8 +362,8 @@ class _CriteriaRow extends StatefulWidget {
 }
 
 class _CriteriaRowState extends State<_CriteriaRow> {
-  late final TextEditingController _weightCtrl;
-  late final List<TextEditingController> _scoreCtrl;
+  late TextEditingController _weightCtrl;
+  late List<TextEditingController> _scoreCtrl;
 
   @override
   void initState() {
@@ -365,6 +375,20 @@ class _CriteriaRowState extends State<_CriteriaRow> {
       3,
       (i) => TextEditingController(text: widget.item.scores[i]),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant _CriteriaRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newWeight = widget.item.weight == 0 ? '' : widget.item.weight.toString();
+    if (_weightCtrl.text != newWeight) {
+      _weightCtrl.text = newWeight;
+    }
+    for (int i = 0; i < 3; i++) {
+      if (_scoreCtrl[i].text != widget.item.scores[i]) {
+        _scoreCtrl[i].text = widget.item.scores[i];
+      }
+    }
   }
 
   @override

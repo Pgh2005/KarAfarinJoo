@@ -57,122 +57,131 @@ class _HomePageState extends ConsumerState<HomePage> {
             ? ref.watch(teacherClassesProvider)
             : ref.watch(studentClassesProvider);
 
-        return Scaffold(
-          appBar: AppBarBuilder(
-            title: 'کلاس‌های من',
-            leading: IconButton(
-              icon: const Icon(Icons.account_circle_outlined, size: 28),
-              onPressed: () => context.pushNamed('profile'),
-            ),
-            actions: [
-              Consumer(
-                builder: (context, ref, _) {
-                  final count = ref
-                      .watch(pendingInviteRequestsProvider)
-                      .maybeWhen(
-                        data: (r) => r
-                            .where(
-                              (it) =>
-                                  it.request.status ==
-                                  JoinRequestStatus.pending,
-                            )
-                            .length,
-                        orElse: () => 0,
-                      );
-                  return Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications_outlined),
-                        onPressed: () async {
-                          await context.pushNamed('invite-requests');
-                          ref.invalidate(pendingInviteRequestsProvider);
-                          ref.invalidate(teacherClassesProvider);
-                        },
-                      ),
-                      if (count > 0)
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 18,
-                              minHeight: 18,
-                            ),
-                            child: Text(
-                              count > 9 ? '9+' : '$count',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            backgroundColor: AppTheme.surface,
+            appBar: AppBarBuilder(
+              title: 'کلاس‌های من',
+              leading: IconButton(
+                icon: const Icon(Icons.account_circle_outlined, size: 28),
+                onPressed: () => context.pushNamed('profile'),
+              ),
+              actions: [
+                Consumer(
+                  builder: (context, ref, _) {
+                    final count = ref
+                        .watch(pendingInviteRequestsProvider)
+                        .maybeWhen(
+                          data: (r) => r
+                              .where(
+                                (it) =>
+                                    it.request.status ==
+                                    JoinRequestStatus.pending,
+                              )
+                              .length,
+                          orElse: () => 0,
+                        );
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_outlined),
+                          onPressed: () async {
+                            await context.pushNamed('invite-requests');
+                            ref.invalidate(pendingInviteRequestsProvider);
+                            ref.invalidate(teacherClassesProvider);
+                          },
+                        ),
+                        if (count > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
                               ),
-                              textAlign: TextAlign.center,
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                count > 9 ? '9+' : '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                  );
-                },
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+            body: classesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'خطا در دریافت کلاس‌ها:\n$e',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
-            ],
-          ),
-          body: classesAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'خطا در دریافت کلاس‌ها:\n$e',
-                  textAlign: TextAlign.center,
+              data: (classes) => RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(currentSessionProfileProvider);
+                  if (isProfessor) {
+                    ref.invalidate(teacherClassesProvider);
+                    ref.invalidate(pendingInviteRequestsProvider);
+                    await ref.read(teacherClassesProvider.future);
+                  } else {
+                    ref.invalidate(studentClassesProvider);
+                    await ref.read(studentClassesProvider.future);
+                  }
+                },
+                child: _ClassListView(
+                  classes: classes,
+                  isProfessor: isProfessor,
                 ),
               ),
             ),
-            data: (classes) => RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(currentSessionProfileProvider);
+            floatingActionButton: FloatingActionButton.extended(
+              backgroundColor: AppTheme.primary,
+              elevation: 4,
+              onPressed: () async {
                 if (isProfessor) {
-                  ref.invalidate(teacherClassesProvider);
-                  ref.invalidate(pendingInviteRequestsProvider);
-                  await ref.read(teacherClassesProvider.future);
+                  final result = await context.pushNamed('create-class');
+                  if (result == true) ref.invalidate(teacherClassesProvider);
                 } else {
-                  ref.invalidate(studentClassesProvider);
-                  await ref.read(studentClassesProvider.future);
+                  final result = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => const EnterInviteCodeDialog(),
+                  );
+                  if (result == true) ref.invalidate(studentClassesProvider);
                 }
               },
-              child: _ClassListView(classes: classes, isProfessor: isProfessor),
-            ),
-          ),
-          floatingActionButton: FloatingActionButton.extended(
-            backgroundColor: AppTheme.primary,
-            onPressed: () async {
-              if (isProfessor) {
-                final result = await context.pushNamed('create-class');
-                if (result == true) ref.invalidate(teacherClassesProvider);
-              } else {
-                final result = await showDialog<bool>(
-                  context: context,
-                  builder: (_) => const EnterInviteCodeDialog(),
-                );
-                if (result == true) ref.invalidate(studentClassesProvider);
-              }
-            },
-            icon: Icon(
-              isProfessor ? Icons.add : Icons.group_add,
-              color: Colors.white,
-            ),
-            label: Text(
-              isProfessor ? 'کلاس جدید' : 'عضویت در کلاس',
-              style: const TextStyle(
+              icon: Icon(
+                isProfessor ? Icons.add : Icons.group_add,
                 color: Colors.white,
-                fontWeight: FontWeight.w600,
+              ),
+              label: Text(
+                isProfessor ? 'کلاس جدید' : 'عضویت در کلاس',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.startFloat,
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         );
       },
     );
@@ -197,11 +206,22 @@ class _ClassListView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 88,
+                  height: 88,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primary.withValues(alpha: 0.1),
+                        AppTheme.primaryLight,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.15),
+                      width: 2,
+                    ),
                   ),
                   child: const Icon(
                     Icons.school_outlined,
@@ -209,25 +229,30 @@ class _ClassListView extends StatelessWidget {
                     color: AppTheme.primary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 Text(
                   isProfessor
                       ? 'هنوز کلاسی ایجاد نکرده‌اید'
                       : 'هنوز عضو هیچ کلاسی نشده‌اید',
                   style: const TextStyle(
-                    fontSize: 16,
-                    color: AppTheme.textSecondary,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 17,
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  isProfessor
-                      ? 'با دکمه پایین کلاس بسازید'
-                      : 'با دکمه پایین وارد کلاس شوید',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppTheme.textHint,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    isProfessor
+                        ? 'با دکمه پایین صفحه اولین کلاس خود را بسازید'
+                        : 'با دکمه پایین صفحه وارد کلاس مورد نظر شوید',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textHint,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
@@ -264,9 +289,9 @@ class _ClassListView extends StatelessWidget {
                 border: Border.all(color: AppTheme.border, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    color: AppTheme.primary.withValues(alpha: 0.08),
                     blurRadius: 12,
-                    offset: Offset(0, 0),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -274,20 +299,35 @@ class _ClassListView extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
+                    // Avatar with gradient
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.12),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primary,
+                            AppTheme.primaryDark,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Center(
                         child: Text(
                           initials,
-                          style: TextStyle(
-                            fontSize: 20,
+                          style: const TextStyle(
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primary,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -322,10 +362,17 @@ class _ClassListView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppTheme.primary,
-                      size: 20,
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppTheme.primary,
+                        size: 18,
+                      ),
                     ),
                   ],
                 ),

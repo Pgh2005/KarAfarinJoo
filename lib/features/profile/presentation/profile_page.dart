@@ -28,13 +28,24 @@ class ProfilePage extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-                const SizedBox(height: 16),
-                Text(
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline_rounded,
+                    size: 48,
+                    color: Colors.red.shade400,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
                   'خطا در دریافت اطلاعات پروفایل',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
                   ),
                   textAlign: TextAlign.center,
@@ -42,7 +53,10 @@ class ProfilePage extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   '$error',
-                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -55,13 +69,20 @@ class ProfilePage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.person_off_outlined,
-                    size: 64,
-                    color: AppTheme.textHint,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.divider,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person_off_outlined,
+                      size: 48,
+                      color: AppTheme.textHint,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
+                  const SizedBox(height: 20),
+                  const Text(
                     'اطلاعات کاربر پیدا نشد',
                     style: TextStyle(
                       fontSize: 16,
@@ -76,7 +97,7 @@ class ProfilePage extends ConsumerWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Header Section with Avatar
+                // ── Header Section with Avatar ──
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -90,22 +111,25 @@ class ProfilePage extends ConsumerWidget {
                     bottom: false,
                     child: Column(
                       children: [
-                        const SizedBox(height: 24),
-                        // Avatar
+                        const SizedBox(height: 28),
+                        // Avatar with shadow
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 4),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 4,
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 20,
-                                offset: const Offset(0, 4),
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
                           child: CircleAvatar(
-                            radius: 56,
+                            radius: 58,
                             backgroundColor: Colors.white,
                             backgroundImage: profile.avatarUrl != null
                                 ? NetworkImage(profile.avatarUrl!)
@@ -113,8 +137,8 @@ class ProfilePage extends ConsumerWidget {
                             child: profile.avatarUrl == null
                                 ? Text(
                                     _getInitials(profile.fullName),
-                                    style: TextStyle(
-                                      fontSize: 36,
+                                    style: const TextStyle(
+                                      fontSize: 38,
                                       fontWeight: FontWeight.bold,
                                       color: AppTheme.primary,
                                     ),
@@ -122,7 +146,7 @@ class ProfilePage extends ConsumerWidget {
                                 : null,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
                         // Name
                         Text(
                           profile.fullName,
@@ -130,18 +154,23 @@ class ProfilePage extends ConsumerWidget {
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            letterSpacing: -0.3,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         // Role Badge
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
+                            horizontal: 18,
+                            vertical: 7,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
                           ),
                           child: Text(
                             profile.role == UserRole.student
@@ -154,13 +183,13 @@ class ProfilePage extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 28),
                       ],
                     ),
                   ),
                 ),
 
-                // Profile Information Cards
+                // ── Profile Information Cards ──
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -186,14 +215,13 @@ class ProfilePage extends ConsumerWidget {
                         ],
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
                       // Academic Information Card
                       _buildInfoCard(
                         title: 'اطلاعات دانشگاهی',
                         icon: Icons.school_outlined,
                         children: [
-                          // Show student number OR teacher number based on role
                           if (profile.role == UserRole.student &&
                               profile.studentNumber != null)
                             _buildInfoRow(
@@ -229,14 +257,14 @@ class ProfilePage extends ConsumerWidget {
 
                       // Bio Card (if available)
                       if (profile.bio != null) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _buildInfoCard(
                           title: 'درباره من',
                           icon: Icons.info_outlined,
                           children: [
                             Text(
                               profile.bio!,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: AppTheme.textSecondary,
                                 height: 1.6,
@@ -246,12 +274,13 @@ class ProfilePage extends ConsumerWidget {
                         ),
                       ],
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
                       // Logout Button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
+                        height: 52,
+                        child: OutlinedButton.icon(
                           onPressed: () async {
                             final shouldLogout = await _showLogoutDialog(
                               context,
@@ -265,12 +294,20 @@ class ProfilePage extends ConsumerWidget {
                               }
                             }
                           },
-                          icon: const Icon(Icons.logout),
-                          label: const Text('خروج از حساب کاربری'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.shade500,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          icon: const Icon(Icons.logout_rounded, size: 20),
+                          label: const Text(
+                            'خروج از حساب کاربری',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: BorderSide(
+                              color: Colors.red.withValues(alpha: 0.4),
+                              width: 1.5,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
@@ -278,7 +315,7 @@ class ProfilePage extends ConsumerWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -303,42 +340,59 @@ class ProfilePage extends ConsumerWidget {
         border: Border.all(color: AppTheme.border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: AppTheme.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Card header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryLight, AppTheme.cardBg],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
+            ),
+            child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
+                    color: AppTheme.primary,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, size: 20, color: AppTheme.primary),
+                  child: Icon(icon, size: 18, color: Colors.white),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryDark,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
+          ),
+          Container(height: 1, color: AppTheme.border),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: children,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -359,7 +413,7 @@ class ProfilePage extends ConsumerWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppTheme.textHint,
                   fontWeight: FontWeight.w500,
@@ -368,7 +422,7 @@ class ProfilePage extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   color: AppTheme.textPrimary,
                   fontWeight: FontWeight.w500,
@@ -393,28 +447,53 @@ class ProfilePage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'خروج از حساب',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.red, size: 24),
+            SizedBox(width: 8),
+            Text(
+              'خروج از حساب',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
         content: const Text(
           'آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟',
+          style: TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
+            child: const Text(
               'انصراف',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade500,
+              backgroundColor: Colors.red,
               foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
             ),
-            child: const Text('خروج'),
+            child: const Text(
+              'خروج',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
           ),
         ],
       ),
