@@ -335,7 +335,7 @@ class _CliftonTestBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF6C63FF).withValues(alpha: 0.08),
+            AppTheme.accentLight,
             AppTheme.cardBg,
           ],
           begin: Alignment.topRight,
@@ -343,12 +343,12 @@ class _CliftonTestBanner extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+          color: AppTheme.accent.withValues(alpha: 0.4),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6C63FF).withValues(alpha: 0.06),
+            color: AppTheme.accent.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -386,12 +386,12 @@ class _CliftonTestBanner extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6C63FF).withValues(alpha: 0.12),
+                    color: AppTheme.accentLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.psychology_rounded,
-                    color: Color(0xFF6C63FF),
+                    color: AppTheme.accentDark,
                     size: 26,
                   ),
                 ),
@@ -428,12 +428,12 @@ class _CliftonTestBanner extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                    color: AppTheme.accentLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     isEditable ? Icons.open_in_new_rounded : Icons.link,
-                    color: const Color(0xFF6C63FF),
+                    color: AppTheme.accentDark,
                     size: 18,
                   ),
                 ),

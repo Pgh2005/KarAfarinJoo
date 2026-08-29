@@ -1,18 +1,37 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  // ── Blue palette ──
   static const Color primary = Color(0xFF1A73E8);
   static const Color primaryLight = Color(0xFFE8F0FE);
-  static const Color primaryDark = Color(0xFF1557B0);
-  static const Color surface = Color(0xFFF8F9FF);
+  static const Color primaryDark = Color(0xFF0D47A1);
+
+  // ── Yellow / Accent palette ──
+  static const Color accent = Color(0xFFF9A825);
+  static const Color accentDark = Color(0xFFF57F17);
+  static const Color accentLight = Color(0xFFFFF8E1);
+  static const Color accentSoft = Color(0xFFFFF3CD);
+
+  // ── Surface / Background ──
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceAlt = Color(0xFFF8FAFF);
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color border = Color(0xFFE3E8F4);
+
+  // ── Text ──
   static const Color textPrimary = Color(0xFF1A1F36);
   static const Color textSecondary = Color(0xFF6B7280);
   static const Color textHint = Color(0xFFADB5BD);
+
+  // ── Borders / Dividers ──
+  static const Color border = Color(0xFFE3E8F4);
   static const Color divider = Color(0xFFF0F2F8);
+
+  // ── Semantic ──
   static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
+  static const Color warning = Color(0xFFF9A825);
+  static const Color error = Color(0xFFE53935);
+
+  // ── Misc ──
   static const Color cardShadow = Color(0x0A1A73E8);
   static const Color avatarBg = Color(0xFFE8F0FE);
 
@@ -24,7 +43,7 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: surface,
     appBarTheme: const AppBarTheme(
-      backgroundColor: cardBg,
+      backgroundColor: surface,
       foregroundColor: textPrimary,
       elevation: 0,
       scrolledUnderElevation: 1,
