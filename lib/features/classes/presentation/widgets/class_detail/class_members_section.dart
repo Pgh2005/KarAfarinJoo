@@ -165,9 +165,9 @@ class _StudentMemberCard extends StatelessWidget {
           );
         },
         leading: Container(
-          width: 62,
-          height: 62,
-          padding: const EdgeInsets.all(3),
+          width: 52,
+          height: 52,
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
@@ -183,13 +183,16 @@ class _StudentMemberCard extends StatelessWidget {
               ),
             ],
           ),
-          child: ProfileAvatar(
-            fullName: displayName,
-            avatarUrl: member.avatarUrl,
-            resolvedImageUrl: member.avatarUrl,
-            radius: 27,
-            backgroundColor: AppTheme.avatarBg,
-            foregroundColor: AppTheme.primary,
+          child: SizedBox.square(
+            dimension: 48,
+            child: ProfileAvatar(
+              fullName: displayName,
+              avatarUrl: member.avatarUrl,
+              resolvedImageUrl: member.avatarUrl,
+              radius: 24,
+              backgroundColor: AppTheme.avatarBg,
+              foregroundColor: AppTheme.primary,
+            ),
           ),
         ),
         title: Text(
