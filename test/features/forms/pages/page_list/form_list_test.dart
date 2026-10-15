@@ -25,7 +25,14 @@ void main() {
     );
 
     expect(find.text('دانشجوی آزمایشی'), findsOneWidget);
+    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsOneWidget);
     expect(find.byTooltip('حذف دانشجو از کلاس'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('مشاهده پروفایل دانشجو'));
+    await tester.pumpAndSettle();
+    expect(find.text('پروفایل class-1/student-1'), findsOneWidget);
+    router.pop();
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('حذف دانشجو از کلاس'));
     await tester.pumpAndSettle();
@@ -55,6 +62,7 @@ void main() {
     );
 
     expect(find.byTooltip('حذف دانشجو از کلاس'), findsNothing);
+    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsNothing);
     router.dispose();
   });
 }
@@ -77,6 +85,17 @@ Future<GoRouter> _pumpFormList(
           classId: 'class-1',
           studentId: 'student-1',
           studentName: 'دانشجوی آزمایشی',
+        ),
+      ),
+      GoRoute(
+        path: '/student-profile',
+        name: 'student-profile',
+        builder: (context, state) => Scaffold(
+          body: Text(
+            'پروفایل '
+            '${state.uri.queryParameters['classId']}/'
+            '${state.uri.queryParameters['studentId']}',
+          ),
         ),
       ),
     ],

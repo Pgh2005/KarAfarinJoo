@@ -67,6 +67,25 @@ final appRouter = GoRouter(
       builder: (context, state) => const ProfilePage(),
     ),
     GoRoute(
+      path: '/student-profile',
+      name: 'student-profile',
+      builder: (context, state) {
+        final classId = state.uri.queryParameters['classId'];
+        final studentId = state.uri.queryParameters['studentId'];
+        if (classId == null ||
+            classId.isEmpty ||
+            studentId == null ||
+            studentId.isEmpty) {
+          return const Scaffold(
+            appBar: AppBarBuilder(title: 'پروفایل دانشجو'),
+            body: Center(child: Text('اطلاعات پروفایل معتبر نیست.')),
+          );
+        }
+
+        return ProfilePage(classId: classId, studentId: studentId);
+      },
+    ),
+    GoRoute(
       path: '/create-class',
       name: 'create-class',
       builder: (context, state) => const CreateClassPage(),

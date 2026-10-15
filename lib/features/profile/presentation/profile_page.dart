@@ -6,19 +6,32 @@ import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
+import 'package:karafarini/features/profile/providers/student_profile_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
-  const ProfilePage({super.key});
+  final String? classId;
+  final String? studentId;
+
+  const ProfilePage({super.key, this.classId, this.studentId})
+    : assert((classId == null) == (studentId == null));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(currentSessionProfileProvider);
+    final isStudentProfile = classId != null && studentId != null;
+    final profileAsync = isStudentProfile
+        ? ref.watch(
+            studentProfileProvider((
+              classId: classId!,
+              studentId: studentId!,
+            )),
+          )
+        : ref.watch(currentSessionProfileProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
-      appBar: const AppBarBuilder(
-        title: 'پروفایل',
-        automaticallyImplyLeading: false,
+      appBar: AppBarBuilder(
+        title: isStudentProfile ? 'پروفایل دانشجو' : 'پروفایل',
+        automaticallyImplyLeading: isStudentProfile,
       ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -276,46 +289,46 @@ class ProfilePage extends ConsumerWidget {
 
                       const SizedBox(height: 28),
 
-                      // Logout Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final shouldLogout = await _showLogoutDialog(
-                              context,
-                            );
-                            if (shouldLogout == true) {
-                              await ref.read(supabaseProvider).auth.signOut();
-                              ref.invalidate(currentSessionProfileProvider);
+                      if (!isStudentProfile) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final shouldLogout = await _showLogoutDialog(
+                                context,
+                              );
+                              if (shouldLogout == true) {
+                                await ref.read(supabaseProvider).auth.signOut();
+                                ref.invalidate(currentSessionProfileProvider);
 
-                              if (context.mounted) {
-                                context.go('/login');
+                                if (context.mounted) {
+                                  context.go('/login');
+                                }
                               }
-                            }
-                          },
-                          icon: const Icon(Icons.logout_rounded, size: 20),
-                          label: const Text(
-                            'خروج از حساب کاربری',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                            },
+                            icon: const Icon(Icons.logout_rounded, size: 20),
+                            label: const Text(
+                              'خروج از حساب کاربری',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: BorderSide(
-                              color: Colors.red.withValues(alpha: 0.4),
-                              width: 1.5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: BorderSide(
+                                color: Colors.red.withValues(alpha: 0.4),
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
+                      ],
                     ],
                   ),
                 ),
