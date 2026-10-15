@@ -36,8 +36,7 @@ class InviteService {
         .toList();
   }
 
-  /// Get join requests created by a student (their own requests). This is used
-  /// so students can view the status of their requests.
+  /// Get pending join requests created by a student.
   Future<List<JoinRequestWithProfile>> getRequestsForStudent(
     String studentId,
   ) async {
@@ -56,7 +55,7 @@ class InviteService {
       )
     ''')
         .eq('student_id', studentId)
-        .inFilter('status', ['pending', 'rejected'])
+        .eq('status', JoinRequestStatus.pending.value)
         .order('created_at', ascending: false);
 
     return (response as List)
@@ -67,85 +66,26 @@ class InviteService {
         .toList();
   }
 
-  /// Delete a join request (students can dismiss their rejected requests)
-  Future<void> deleteRequest({
-    required String requestId,
-    required String studentId,
-  }) async {
-    await _supabase
-        .from('class_join_requests')
-        .delete()
-        .eq('id', requestId)
-        .eq('student_id', studentId);
-  }
-
   Future<void> approveRequest({
     required String requestId,
-    required String classId,
-    required String studentId,
-    required String teacherId,
   }) async {
-    final updatedRequest = await _supabase
-        .from('class_join_requests')
-        .update({
-          'status': JoinRequestStatus.approved.value,
-          'reviewed_by': teacherId,
-          'reviewed_at': DateTime.now().toIso8601String(),
-          'rejection_reason': null,
-        })
-        .eq('id', requestId)
-        .eq('status', JoinRequestStatus.pending.value)
-        .select()
-        .maybeSingle();
-
-    if (updatedRequest == null) {
-      throw Exception('این درخواست قبلاً بررسی شده یا دیگر معتبر نیست.');
-    }
-
-    try {
-      await _supabase.from('class_members').insert({
-        'class_id': classId,
-        'student_id': studentId,
-        'approved_by': teacherId,
-        'request_id': requestId,
-        'joined_at': DateTime.now().toIso8601String(),
-      });
-    } on PostgrestException catch (_) {
-      await _supabase
-          .from('class_join_requests')
-          .update({
-            'status': JoinRequestStatus.pending.value,
-            'reviewed_by': null,
-            'reviewed_at': null,
-          })
-          .eq('id', requestId);
-
-      rethrow;
-    }
+    await _reviewRequest(requestId, JoinRequestStatus.approved);
   }
 
-  Future<void> rejectRequest({
-    required String requestId,
-    required String teacherId,
-    String? rejectionReason,
-  }) async {
-    final updated = await _supabase
-        .from('class_join_requests')
-        .update({
-          'status': JoinRequestStatus.rejected.value,
-          'reviewed_by': teacherId,
-          'reviewed_at': DateTime.now().toIso8601String(),
-          'rejection_reason': rejectionReason?.trim().isEmpty == true
-              ? null
-              : rejectionReason?.trim(),
-        })
-        .eq('id', requestId)
-        .eq('status', JoinRequestStatus.pending.value)
-        .select()
-        .maybeSingle();
+  Future<void> rejectRequest({required String requestId}) async {
+    await _reviewRequest(requestId, JoinRequestStatus.rejected);
+  }
 
-    if (updated == null) {
-      throw Exception('این درخواست قبلاً بررسی شده یا دیگر معتبر نیست.');
-    }
+  Future<void> _reviewRequest(
+    String requestId,
+    JoinRequestStatus decision,
+  ) async {
+    await _supabase.rpc(
+      'review_class_join_request',
+      params: {
+        'p_request_id': requestId,
+        'p_decision': decision.value,
+      },
+    );
   }
 }
