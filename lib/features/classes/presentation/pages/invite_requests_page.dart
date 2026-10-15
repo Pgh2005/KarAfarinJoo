@@ -153,7 +153,6 @@ class InviteRequestsPage extends ConsumerWidget {
                       message: item.request.message,
                       createdAt: item.request.createdAt,
                       status: item.request.status,
-                      rejectionReason: item.request.rejectionReason,
                       isStudentView: false,
                       onApprove: () async {
                         await _handleApprove(context, ref, item);
@@ -164,7 +163,7 @@ class InviteRequestsPage extends ConsumerWidget {
                     );
                   }
 
-                  // Student view: no approve/reject buttons. Show delete for rejected requests.
+                  // Students only see requests while they are pending review.
                   return _RequestCard(
                     studentName: item.studentName ?? 'بدون نام',
                     studentEmail: item.studentEmail ?? '',
@@ -172,39 +171,7 @@ class InviteRequestsPage extends ConsumerWidget {
                     message: item.request.message,
                     createdAt: item.request.createdAt,
                     status: item.request.status,
-                    rejectionReason: item.request.rejectionReason,
                     isStudentView: true,
-                    onDelete: () async {
-                      try {
-                        final userId = ref.read(currentUserIdProvider);
-                        if (userId == null) throw Exception('کاربر یافت نشد');
-
-                        final service = ref.read(inviteServiceProvider);
-                        await service.deleteRequest(
-                          requestId: item.request.id,
-                          studentId: userId,
-                        );
-
-                        ref.invalidate(pendingInviteRequestsProvider);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('اعلان حذف شد'),
-                              backgroundColor: Colors.grey,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('خطا: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
                   );
                 },
               ),
@@ -274,12 +241,7 @@ class InviteRequestsPage extends ConsumerWidget {
       if (userId == null) throw Exception('کاربر یافت نشد');
 
       final service = ref.read(inviteServiceProvider);
-      await service.approveRequest(
-        requestId: item.request.id,
-        classId: item.request.classId,
-        studentId: item.request.studentId,
-        teacherId: userId,
-      );
+      await service.approveRequest(requestId: item.request.id);
 
       ref.invalidate(pendingInviteRequestsProvider);
       ref.invalidate(studentClassesProvider);
@@ -305,7 +267,6 @@ class InviteRequestsPage extends ConsumerWidget {
 
   Future<void> _handleReject(BuildContext context, WidgetRef ref, item) async {
     final studentName = item.studentName ?? 'این دانشجو';
-    final reasonController = TextEditingController();
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -318,24 +279,9 @@ class InviteRequestsPage extends ConsumerWidget {
             Text('رد درخواست'),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'آیا می‌خواهید درخواست $studentName را رد کنید؟',
-              style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'دلیل رد (اختیاری)',
-                hintText: 'دلیل رد کردن را وارد کنید',
-              ),
-              maxLines: 3,
-            ),
-          ],
+        content: Text(
+          'آیا می‌خواهید درخواست $studentName را رد کنید؟ پس از رد، درخواست از فهرست حذف می‌شود.',
+          style: const TextStyle(fontSize: 14, height: 1.5),
         ),
         actionsPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -371,25 +317,15 @@ class InviteRequestsPage extends ConsumerWidget {
       ),
     );
 
-    if (confirmed != true || !context.mounted) {
-      reasonController.dispose();
-      return;
-    }
+    if (confirmed != true || !context.mounted) return;
 
     try {
       final userId = ref.read(currentUserIdProvider);
       if (userId == null) throw Exception('کاربر یافت نشد');
 
       final service = ref.read(inviteServiceProvider);
-      await service.rejectRequest(
-        requestId: item.request.id,
-        teacherId: userId,
-        rejectionReason: reasonController.text.trim().isEmpty
-            ? null
-            : reasonController.text.trim(),
-      );
+      await service.rejectRequest(requestId: item.request.id);
 
-      reasonController.dispose();
       ref.invalidate(pendingInviteRequestsProvider);
 
       if (context.mounted) {
@@ -401,7 +337,6 @@ class InviteRequestsPage extends ConsumerWidget {
         );
       }
     } catch (e) {
-      reasonController.dispose();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
@@ -418,11 +353,9 @@ class _RequestCard extends StatelessWidget {
   final String? message;
   final DateTime createdAt;
   final JoinRequestStatus status;
-  final String? rejectionReason;
   final bool isStudentView;
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
-  final VoidCallback? onDelete;
 
   const _RequestCard({
     required this.studentName,
@@ -431,11 +364,9 @@ class _RequestCard extends StatelessWidget {
     this.message,
     required this.createdAt,
     required this.status,
-    this.rejectionReason,
     this.isStudentView = false,
     this.onApprove,
     this.onReject,
-    this.onDelete,
   });
 
   String _formatDate(DateTime date) {
@@ -711,119 +642,6 @@ class _RequestCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ] else if (status == JoinRequestStatus.rejected) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.warning.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppTheme.warning.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppTheme.warning.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.error_outline_rounded,
-                          size: 20,
-                          color: AppTheme.warning,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'درخواست رد شد',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.warning,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'متاسفانه درخواست شما برای کلاس "$className" رد شده است. لطفاً دلیل را بررسی کنید یا این اعلان را حذف کنید.',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppTheme.textSecondary,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.divider,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.border, width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'دلیل رد',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        rejectionReason != null &&
-                                rejectionReason!.trim().isNotEmpty
-                            ? rejectionReason!
-                            : 'هیچ توضیحی ثبت نشده است.',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppTheme.textSecondary,
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: OutlinedButton.icon(
-                    onPressed: onDelete,
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('حذف اعلان'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.warning,
-                      side: BorderSide(
-                        color: AppTheme.warning.withValues(alpha: 0.5),
-                        width: 1.5,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                   ),
                 ),
               ],
