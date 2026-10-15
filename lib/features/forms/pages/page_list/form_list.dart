@@ -173,21 +173,23 @@ class _FormListState extends ConsumerState<FormList> {
         backgroundColor: AppTheme.surface,
         appBar: AppBarBuilder(
           title: studentName,
+          leading: isProfessor && classId.isNotEmpty && studentId.isNotEmpty
+              ? IconButton(
+                  tooltip: 'مشاهده پروفایل دانشجو',
+                  onPressed: () {
+                    context.pushNamed(
+                      'student-profile',
+                      queryParameters: {
+                        'classId': classId,
+                        'studentId': studentId,
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.account_circle_outlined),
+                )
+              : null,
           actions: [
             if (isProfessor && classId.isNotEmpty && studentId.isNotEmpty) ...[
-              IconButton(
-                tooltip: 'مشاهده پروفایل دانشجو',
-                onPressed: () {
-                  context.pushNamed(
-                    'student-profile',
-                    queryParameters: {
-                      'classId': classId,
-                      'studentId': studentId,
-                    },
-                  );
-                },
-                icon: const Icon(Icons.account_circle_outlined),
-              ),
               IconButton(
                 tooltip: 'حذف دانشجو از کلاس',
                 onPressed: _isRemovingStudent ? null : _removeStudentFromClass,

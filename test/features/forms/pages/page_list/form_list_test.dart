@@ -27,6 +27,10 @@ void main() {
     expect(find.text('دانشجوی آزمایشی'), findsOneWidget);
     expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsOneWidget);
     expect(find.byTooltip('حذف دانشجو از کلاس'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.byTooltip('مشاهده پروفایل دانشجو')).dx,
+      greaterThan(tester.getTopLeft(find.byTooltip('حذف دانشجو از کلاس')).dx),
+    );
 
     await tester.tap(find.byTooltip('مشاهده پروفایل دانشجو'));
     await tester.pumpAndSettle();

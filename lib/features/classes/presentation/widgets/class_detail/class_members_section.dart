@@ -177,31 +177,10 @@ class _StudentMemberCard extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text('$displayNumber '),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: 'مشاهده پروفایل دانشجو',
-              onPressed: () {
-                context.pushNamed(
-                  'student-profile',
-                  queryParameters: {
-                    'classId': member.classId,
-                    'studentId': member.studentId,
-                  },
-                );
-              },
-              icon: const Icon(
-                Icons.account_circle_outlined,
-                color: AppTheme.primary,
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 20,
-              color: AppTheme.primary,
-            ),
-          ],
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          size: 20,
+          color: AppTheme.primary,
         ),
       ),
     );

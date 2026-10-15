@@ -57,16 +57,10 @@ void main() {
 
     expect(find.text('دانشجوی آزمایشی'), findsOneWidget);
     expect(find.byTooltip('حذف دانشجو از کلاس'), findsNothing);
-    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsOneWidget);
+    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsNothing);
     final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
     expect(avatar.avatarUrl, 'https://example.com/student.jpg');
     expect(avatar.resolvedImageUrl, 'https://example.com/student.jpg');
-
-    await tester.tap(find.byTooltip('مشاهده پروفایل دانشجو'));
-    await tester.pumpAndSettle();
-    expect(find.text('پروفایل class-1/student-1'), findsOneWidget);
-    router.pop();
-    await tester.pumpAndSettle();
 
     await tester.tap(find.text('دانشجوی آزمایشی'));
     await tester.pumpAndSettle();
