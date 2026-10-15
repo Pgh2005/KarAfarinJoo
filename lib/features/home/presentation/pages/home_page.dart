@@ -305,10 +305,7 @@ class _ClassListView extends StatelessWidget {
                       height: 50,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primary,
-                            AppTheme.primaryDark,
-                          ],
+                          colors: [AppTheme.primary, AppTheme.primaryDark],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),

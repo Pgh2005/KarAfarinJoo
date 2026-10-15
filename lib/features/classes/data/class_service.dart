@@ -80,6 +80,13 @@ class ClassService {
         .toList();
   }
 
+  Future<void> deleteClass({required String classId}) async {
+    await _supabase.rpc(
+      'delete_class_with_data',
+      params: {'p_class_id': classId},
+    );
+  }
+
   Future<void> sendJoinRequest({
     required String joinCode,
     required String studentId,
