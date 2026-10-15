@@ -61,6 +61,16 @@ void main() {
     final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
     expect(avatar.avatarUrl, 'https://example.com/student.jpg');
     expect(avatar.resolvedImageUrl, 'https://example.com/student.jpg');
+    expect(avatar.radius, 27);
+    final avatarFrame = tester.widget<Container>(
+      find.ancestor(
+        of: find.byType(ProfileAvatar),
+        matching: find.byType(Container),
+      ).first,
+    );
+    final frameDecoration = avatarFrame.decoration! as BoxDecoration;
+    expect(frameDecoration.shape, BoxShape.circle);
+    expect(frameDecoration.boxShadow, isNotEmpty);
 
     await tester.tap(find.text('دانشجوی آزمایشی'));
     await tester.pumpAndSettle();

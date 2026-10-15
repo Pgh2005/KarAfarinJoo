@@ -164,13 +164,33 @@ class _StudentMemberCard extends StatelessWidget {
             },
           );
         },
-        leading: ProfileAvatar(
-          fullName: displayName,
-          avatarUrl: member.avatarUrl,
-          resolvedImageUrl: member.avatarUrl,
-          radius: 24,
-          backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-          foregroundColor: AppTheme.primary,
+        leading: Container(
+          width: 62,
+          height: 62,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppTheme.primary.withValues(alpha: 0.2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primary.withValues(alpha: 0.12),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: ProfileAvatar(
+            fullName: displayName,
+            avatarUrl: member.avatarUrl,
+            resolvedImageUrl: member.avatarUrl,
+            radius: 27,
+            backgroundColor: AppTheme.avatarBg,
+            foregroundColor: AppTheme.primary,
+          ),
         ),
         title: Text(
           displayName,
