@@ -80,6 +80,23 @@ class ClassService {
         .toList();
   }
 
+  Future<void> archiveClass({
+    required String classId,
+    required String teacherId,
+  }) async {
+    final archivedClass = await _supabase
+        .from('classes')
+        .update({'is_active': false})
+        .eq('id', classId)
+        .eq('teacher_id', teacherId)
+        .select('id')
+        .maybeSingle();
+
+    if (archivedClass == null) {
+      throw StateError('کلاس یافت نشد یا اجازهٔ آرشیو آن را ندارید.');
+    }
+  }
+
   Future<void> sendJoinRequest({
     required String joinCode,
     required String studentId,

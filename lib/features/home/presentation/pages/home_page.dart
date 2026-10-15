@@ -305,10 +305,7 @@ class _ClassListView extends StatelessWidget {
                       height: 50,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primary,
-                            AppTheme.primaryDark,
-                          ],
+                          colors: [AppTheme.primary, AppTheme.primaryDark],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -345,17 +342,20 @@ class _ClassListView extends StatelessWidget {
                               color: AppTheme.textPrimary,
                             ),
                           ),
-                          if (details.isNotEmpty) ...[
+                          if (details.isNotEmpty || !item.isActive) ...[
                             const SizedBox(height: 6),
-                            Row(
-                              children: details
-                                  .map(
-                                    (d) => _Chip(
-                                      label: d,
-                                      color: AppTheme.primary,
-                                    ),
-                                  )
-                                  .toList(),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                for (final detail in details)
+                                  _Chip(label: detail, color: AppTheme.primary),
+                                if (!item.isActive)
+                                  const _Chip(
+                                    label: 'آرشیو شده',
+                                    color: AppTheme.textSecondary,
+                                  ),
+                              ],
                             ),
                           ],
                         ],

@@ -73,13 +73,26 @@ class ClassDetailHeader extends StatelessWidget {
                           fontSize: 13,
                         ),
                       ),
+                      if (!cm.isActive) ...[
+                        const SizedBox(height: 4),
+                        const Text(
+                          'این کلاس آرشیو شده است',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: _shareInviteCode,
-                  icon: const Icon(Icons.share_outlined, color: Colors.white),
-                ),
+                if (cm.isActive)
+                  IconButton(
+                    tooltip: 'اشتراک‌گذاری کد دعوت',
+                    onPressed: _shareInviteCode,
+                    icon: const Icon(Icons.share_outlined, color: Colors.white),
+                  ),
               ],
             ),
             const Padding(
