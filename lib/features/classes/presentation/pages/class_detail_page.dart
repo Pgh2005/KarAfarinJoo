@@ -5,10 +5,11 @@ import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
-import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_detail_header.dart';
-import 'package:karafarini/features/classes/presentation/widgets/class_detail/student_class_detail_section.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_members_section.dart';
+import 'package:karafarini/features/classes/presentation/widgets/class_detail/student_class_detail_section.dart';
+import 'package:karafarini/features/classes/providers/classes_provider.dart';
+import 'package:karafarini/features/classes/providers/invite_provider.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,16 +23,18 @@ class ClassDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ClassDetailPageState extends ConsumerState<ClassDetailPage> {
-  bool _isArchiving = false;
+  bool _isDeleting = false;
 
-  Future<void> _archiveClass() async {
-    final shouldArchive = await showDialog<bool>(
+  Future<void> _deleteClass() async {
+    final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('آرشیو کلاس'),
+        title: const Text('حذف دائمی کلاس'),
         content: Text(
-          'کلاس «${widget.classModel.title}» غیرفعال می‌شود و دانشجویان جدید '
-          'نمی‌توانند با کد دعوت عضو شوند. اعضا و سوابق موجود حذف نمی‌شوند.',
+          'کلاس «${widget.classModel.title}» و تمام اطلاعات وابسته به آن، '
+          'از جمله عضویت دانشجویان و پاسخ‌های فرم‌های این کلاس، برای همیشه '
+          'حذف می‌شوند. حساب‌ها و پروفایل‌های دانشجویان حذف نخواهند شد. '
+          'این عملیات قابل بازگشت نیست.',
         ),
         actions: [
           TextButton(
@@ -44,55 +47,50 @@ class _ClassDetailPageState extends ConsumerState<ClassDetailPage> {
               backgroundColor: AppTheme.error,
               foregroundColor: Colors.white,
             ),
-            child: const Text('آرشیو کلاس'),
+            child: const Text('حذف دائمی'),
           ),
         ],
       ),
     );
 
-    if (shouldArchive != true || !mounted) return;
+    if (shouldDelete != true || !mounted) return;
 
     final teacherId = ref.read(currentUserIdProvider);
     if (teacherId == null || teacherId != widget.classModel.teacherId) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('فقط ایجادکنندهٔ کلاس می‌تواند آن را آرشیو کند.'),
+          content: Text('فقط ایجادکنندهٔ کلاس می‌تواند آن را حذف کند.'),
         ),
       );
       return;
     }
 
-    setState(() => _isArchiving = true);
+    setState(() => _isDeleting = true);
     try {
       await ref
           .read(classActionsProvider)
-          .archiveClass(classId: widget.classModel.id, teacherId: teacherId);
+          .deleteClass(classId: widget.classModel.id);
 
       ref.invalidate(teacherClassesProvider);
       ref.invalidate(studentClassesProvider);
       ref.invalidate(classMembersProvider(widget.classModel.id));
+      ref.invalidate(pendingInviteRequestsProvider);
 
       if (mounted) context.pop(true);
-    } on StateError catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
     } on PostgrestException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('آرشیو کلاس ناموفق بود: ${error.message}')),
+          SnackBar(content: Text('حذف کلاس ناموفق بود: ${error.message}')),
         );
       }
     } on Exception catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('آرشیو کلاس ناموفق بود: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('حذف کلاس ناموفق بود: $error')));
       }
     } finally {
-      if (mounted) setState(() => _isArchiving = false);
+      if (mounted) setState(() => _isDeleting = false);
     }
   }
 
@@ -107,11 +105,11 @@ class _ClassDetailPageState extends ConsumerState<ClassDetailPage> {
       appBar: AppBarBuilder(
         title: 'جزئیات کلاس',
         actions: [
-          if (isProfessor && isClassOwner && widget.classModel.isActive)
+          if (isProfessor && isClassOwner)
             IconButton(
-              tooltip: 'آرشیو کلاس',
-              onPressed: _isArchiving ? null : _archiveClass,
-              icon: _isArchiving
+              tooltip: 'حذف کلاس',
+              onPressed: _isDeleting ? null : _deleteClass,
+              icon: _isDeleting
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -120,7 +118,7 @@ class _ClassDetailPageState extends ConsumerState<ClassDetailPage> {
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Icons.archive_outlined),
+                  : const Icon(Icons.delete_outline),
             ),
         ],
       ),

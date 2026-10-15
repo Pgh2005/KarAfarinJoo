@@ -14,7 +14,7 @@ import 'package:karafarini/features/profile/providers/current_session_profile_pr
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
-  testWidgets('class owner archives only after confirming', (tester) async {
+  testWidgets('class owner deletes only after confirming', (tester) async {
     const teacherId = 'teacher-1';
     final classModel = _classModel();
     final service = _FakeClassService();
@@ -26,23 +26,22 @@ void main() {
       isProfessor: true,
     );
 
-    await tester.tap(find.byTooltip('آرشیو کلاس'));
+    await tester.tap(find.byTooltip('حذف کلاس'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('سوابق موجود حذف نمی‌شوند'), findsOneWidget);
-    expect(service.archivedClassId, isNull);
+    expect(find.textContaining('قابل بازگشت نیست'), findsOneWidget);
+    expect(service.deletedClassId, isNull);
 
-    await tester.tap(find.text('آرشیو کلاس').last);
+    await tester.tap(find.text('حذف دائمی').last);
     await tester.pumpAndSettle();
 
-    expect(service.archivedClassId, classModel.id);
-    expect(service.archivedTeacherId, teacherId);
+    expect(service.deletedClassId, classModel.id);
     expect(find.text('خانه'), findsOneWidget);
 
     router.dispose();
   });
 
-  testWidgets('non-owner professor cannot archive a class', (tester) async {
+  testWidgets('non-owner professor cannot delete a class', (tester) async {
     final service = _FakeClassService();
     final router = await _pumpClassDetail(
       tester,
@@ -52,8 +51,8 @@ void main() {
       isProfessor: true,
     );
 
-    expect(find.byTooltip('آرشیو کلاس'), findsNothing);
-    expect(service.archivedClassId, isNull);
+    expect(find.byTooltip('حذف کلاس'), findsNothing);
+    expect(service.deletedClassId, isNull);
 
     router.dispose();
   });
@@ -120,16 +119,11 @@ class _FakeClassService extends ClassService {
         ),
       );
 
-  String? archivedClassId;
-  String? archivedTeacherId;
+  String? deletedClassId;
 
   @override
-  Future<void> archiveClass({
-    required String classId,
-    required String teacherId,
-  }) async {
-    archivedClassId = classId;
-    archivedTeacherId = teacherId;
+  Future<void> deleteClass({required String classId}) async {
+    deletedClassId = classId;
   }
 
   @override

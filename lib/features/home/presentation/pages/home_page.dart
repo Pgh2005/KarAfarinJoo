@@ -342,20 +342,17 @@ class _ClassListView extends StatelessWidget {
                               color: AppTheme.textPrimary,
                             ),
                           ),
-                          if (details.isNotEmpty || !item.isActive) ...[
+                          if (details.isNotEmpty) ...[
                             const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: [
-                                for (final detail in details)
-                                  _Chip(label: detail, color: AppTheme.primary),
-                                if (!item.isActive)
-                                  const _Chip(
-                                    label: 'آرشیو شده',
-                                    color: AppTheme.textSecondary,
-                                  ),
-                              ],
+                            Row(
+                              children: details
+                                  .map(
+                                    (d) => _Chip(
+                                      label: d,
+                                      color: AppTheme.primary,
+                                    ),
+                                  )
+                                  .toList(),
                             ),
                           ],
                         ],
