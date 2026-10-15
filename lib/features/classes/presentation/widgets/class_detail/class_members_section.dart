@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ClassMembersSection extends ConsumerStatefulWidget {
   final String classId;
@@ -135,78 +134,13 @@ class _MembersContent extends StatelessWidget {
   }
 }
 
-class _StudentMemberCard extends ConsumerStatefulWidget {
+class _StudentMemberCard extends StatelessWidget {
   final ClassMemberModel member;
 
   const _StudentMemberCard({required this.member});
 
   @override
-  ConsumerState<_StudentMemberCard> createState() => _StudentMemberCardState();
-}
-
-class _StudentMemberCardState extends ConsumerState<_StudentMemberCard> {
-  bool _isRemoving = false;
-
-  Future<void> _removeStudent() async {
-    final member = widget.member;
-    final studentName = member.studentName ?? 'این دانشجو';
-    final shouldRemove = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('حذف دانشجو از کلاس'),
-        content: Text(
-          '$studentName از این کلاس حذف می‌شود. پاسخ‌های فرم‌ها و حساب '
-          'دانشجو حذف نخواهند شد.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('انصراف'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.error,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حذف از کلاس'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldRemove != true || !mounted) return;
-
-    setState(() => _isRemoving = true);
-    try {
-      await ref
-          .read(classActionsProvider)
-          .removeStudentFromClass(
-            classId: member.classId,
-            studentId: member.studentId,
-          );
-      ref.invalidate(classMembersProvider(member.classId));
-      ref.invalidate(studentClassesProvider);
-    } on PostgrestException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حذف دانشجو ناموفق بود: ${error.message}')),
-        );
-      }
-    } on Exception catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حذف دانشجو ناموفق بود: $error')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isRemoving = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final member = widget.member;
     final displayName = member.studentName ?? 'کاربر بدون نام';
     final displayNumber = member.studentNumber ?? 'بدون کد دانشجویی';
     final avatarText = displayName.isNotEmpty ? displayName[0] : 'U';
@@ -245,29 +179,10 @@ class _StudentMemberCardState extends ConsumerState<_StudentMemberCard> {
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text('$displayNumber '),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: 'حذف دانشجو از کلاس',
-              onPressed: _isRemoving ? null : _removeStudent,
-              icon: _isRemoving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(
-                      Icons.person_remove_alt_1_outlined,
-                      color: AppTheme.error,
-                    ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 20,
-              color: AppTheme.primary,
-            ),
-          ],
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          size: 20,
+          color: AppTheme.primary,
         ),
       ),
     );

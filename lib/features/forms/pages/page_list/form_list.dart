@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/features/classes/providers/classes_provider.dart';
+import 'package:karafarini/features/classes/providers/invite_provider.dart';
 import 'package:karafarini/features/forms/pages/page1/presentation/personal_info_page.dart';
 import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.dart';
 import 'package:karafarini/features/forms/pages/page3/presentation/values_page.dart';
@@ -12,8 +15,9 @@ import 'package:karafarini/features/forms/widgets/form_progress.dart';
 import 'package:karafarini/features/forms/widgets/form_progress_provider.dart';
 import 'package:karafarini/features/forms/widgets/progress_bar_widget.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class FormList extends ConsumerWidget {
+class FormList extends ConsumerStatefulWidget {
   final String classId;
   final String studentId;
   final String studentName;
@@ -26,7 +30,75 @@ class FormList extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FormList> createState() => _FormListState();
+}
+
+class _FormListState extends ConsumerState<FormList> {
+  bool _isRemovingStudent = false;
+
+  Future<void> _removeStudentFromClass() async {
+    final shouldRemove = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حذف دانشجو از کلاس'),
+        content: Text(
+          '${widget.studentName} از این کلاس حذف می‌شود. پاسخ‌های فرم‌ها و '
+          'حساب دانشجو حذف نخواهند شد.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('حذف از کلاس'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldRemove != true || !mounted) return;
+
+    setState(() => _isRemovingStudent = true);
+    try {
+      await ref
+          .read(classActionsProvider)
+          .removeStudentFromClass(
+            classId: widget.classId,
+            studentId: widget.studentId,
+          );
+      ref.invalidate(classMembersProvider(widget.classId));
+      ref.invalidate(studentClassesProvider);
+      ref.invalidate(pendingInviteRequestsProvider);
+
+      if (mounted) context.pop(true);
+    } on PostgrestException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حذف دانشجو ناموفق بود: ${error.message}')),
+        );
+      }
+    } on Exception catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حذف دانشجو ناموفق بود: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isRemovingStudent = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final classId = widget.classId;
+    final studentId = widget.studentId;
+    final studentName = widget.studentName;
     final isProfessor = ref.watch(isProfessorProvider);
 
     // Watch overall progress
@@ -99,7 +171,26 @@ class FormList extends ConsumerWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppTheme.surface,
-        appBar: AppBarBuilder(title: studentName),
+        appBar: AppBarBuilder(
+          title: studentName,
+          actions: [
+            if (isProfessor && classId.isNotEmpty && studentId.isNotEmpty)
+              IconButton(
+                tooltip: 'حذف دانشجو از کلاس',
+                onPressed: _isRemovingStudent ? null : _removeStudentFromClass,
+                icon: _isRemovingStudent
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.person_remove_alt_1_outlined),
+              ),
+          ],
+        ),
         body: Column(
           children: [
             // ── Overall Progress Header ──
@@ -160,10 +251,7 @@ class _OverallProgressHeader extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.08),
-            AppTheme.cardBg,
-          ],
+          colors: [color.withValues(alpha: 0.08), AppTheme.cardBg],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
@@ -241,11 +329,7 @@ class _OverallProgressHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          FormProgressBar(
-            percent: percent,
-            height: 8,
-            showLabel: false,
-          ),
+          FormProgressBar(percent: percent, height: 8, showLabel: false),
         ],
       ),
     );
