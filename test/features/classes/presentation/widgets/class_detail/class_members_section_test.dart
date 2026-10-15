@@ -7,7 +7,6 @@ import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_members_section.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/profile/presentation/widgets/profile_avatar.dart';
-import 'package:karafarini/features/profile/providers/profile_photo_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -50,9 +49,6 @@ void main() {
       ProviderScope(
         overrides: [
           classServiceProvider.overrideWith((ref) => _FakeClassService()),
-          profilePhotoUrlProvider(
-            'https://example.com/student.jpg',
-          ).overrideWith((ref) async => null),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
@@ -62,10 +58,9 @@ void main() {
     expect(find.text('دانشجوی آزمایشی'), findsOneWidget);
     expect(find.byTooltip('حذف دانشجو از کلاس'), findsNothing);
     expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsOneWidget);
-    expect(
-      tester.widget<ProfileAvatar>(find.byType(ProfileAvatar)).avatarUrl,
-      'https://example.com/student.jpg',
-    );
+    final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+    expect(avatar.avatarUrl, 'https://example.com/student.jpg');
+    expect(avatar.resolvedImageUrl, 'https://example.com/student.jpg');
 
     await tester.tap(find.byTooltip('مشاهده پروفایل دانشجو'));
     await tester.pumpAndSettle();

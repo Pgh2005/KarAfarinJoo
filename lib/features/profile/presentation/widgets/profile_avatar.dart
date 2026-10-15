@@ -10,6 +10,7 @@ import 'package:karafarini/features/profile/data/profile_photo_service.dart';
 class ProfileAvatar extends ConsumerWidget {
   final String fullName;
   final String? avatarUrl;
+  final String? resolvedImageUrl;
   final double radius;
   final Color backgroundColor;
   final Color foregroundColor;
@@ -18,6 +19,7 @@ class ProfileAvatar extends ConsumerWidget {
     super.key,
     required this.fullName,
     required this.avatarUrl,
+    this.resolvedImageUrl,
     this.radius = 24,
     this.backgroundColor = AppTheme.primaryLight,
     this.foregroundColor = AppTheme.primary,
@@ -25,11 +27,13 @@ class ProfileAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final imageUrlAsync = ref.watch(profilePhotoUrlProvider(avatarUrl));
-    final imageUrl = imageUrlAsync.maybeWhen(
-      data: (url) => url,
-      orElse: () => null,
-    );
+    final imageUrl =
+        resolvedImageUrl ??
+        ref
+            .watch(profilePhotoUrlProvider(avatarUrl))
+            .maybeWhen(data: (url) => url, orElse: () => null);
+    final imageSize = (radius * 2 * MediaQuery.devicePixelRatioOf(context))
+        .round();
 
     return CircleAvatar(
       radius: radius,
@@ -42,6 +46,8 @@ class ProfileAvatar extends ConsumerWidget {
                 width: radius * 2,
                 height: radius * 2,
                 fit: BoxFit.cover,
+                cacheWidth: imageSize,
+                cacheHeight: imageSize,
                 excludeFromSemantics: true,
                 errorBuilder: (context, error, stackTrace) => _initials(),
               ),
@@ -51,9 +57,10 @@ class ProfileAvatar extends ConsumerWidget {
 
   Widget _initials() {
     final words = fullName.trim().split(RegExp(r'\s+'));
-    final initials = words.where((word) => word.isNotEmpty).take(2).map(
-      (word) => word[0],
-    );
+    final initials = words
+        .where((word) => word.isNotEmpty)
+        .take(2)
+        .map((word) => word[0]);
     final text = initials.join().toUpperCase();
 
     return Text(
@@ -89,9 +96,9 @@ class _EditableStudentProfileAvatarState
     try {
       final image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
       );
       if (image == null || !mounted) return;
 
@@ -109,9 +116,9 @@ class _EditableStudentProfileAvatarState
     } on ProfilePhotoCleanupException catch (error) {
       ref.invalidate(currentSessionProfileProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     } on Exception catch (error) {
       if (mounted) {

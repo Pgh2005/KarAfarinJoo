@@ -51,4 +51,19 @@ class ClassMemberModel {
       'joined_at': joinedAt.toIso8601String(),
     };
   }
+
+  ClassMemberModel withAvatarUrl(String? value) {
+    return ClassMemberModel(
+      id: id,
+      classId: classId,
+      studentId: studentId,
+      approvedBy: approvedBy,
+      requestId: requestId,
+      joinedAt: joinedAt,
+      studentName: studentName,
+      studentEmail: studentEmail,
+      studentNumber: studentNumber,
+      avatarUrl: value,
+    );
+  }
 }

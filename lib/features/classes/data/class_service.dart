@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:karafarini/features/profile/data/profile_photo_service.dart';
 
 import '../models/class_member_model.dart';
 import '../models/class_model.dart';
@@ -8,8 +9,11 @@ import '../models/join_request_model.dart';
 
 class ClassService {
   final SupabaseClient _supabase;
+  final ProfilePhotoService _profilePhotoService;
 
-  ClassService(this._supabase);
+  ClassService(this._supabase, [ProfilePhotoService? profilePhotoService])
+    : _profilePhotoService =
+          profilePhotoService ?? ProfilePhotoService(_supabase);
 
   String _generateJoinCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -202,8 +206,15 @@ class ClassService {
         .eq('class_id', classId)
         .order('joined_at', ascending: false);
 
-    return (response as List)
+    final members = (response as List)
         .map((item) => ClassMemberModel.fromMap(item as Map<String, dynamic>))
+        .toList();
+    final displayUrls = await _profilePhotoService.getDisplayUrls(
+      members.map((member) => member.avatarUrl),
+    );
+
+    return members
+        .map((member) => member.withAvatarUrl(displayUrls[member.avatarUrl]))
         .toList();
   }
 }

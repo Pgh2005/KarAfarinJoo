@@ -3,10 +3,12 @@ import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/features/classes/data/class_service.dart';
 import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/features/profile/providers/profile_photo_provider.dart';
 
 final classServiceProvider = Provider<ClassService>((ref) {
   final supabase = ref.watch(supabaseProvider);
-  return ClassService(supabase);
+  final profilePhotoService = ref.watch(profilePhotoServiceProvider);
+  return ClassService(supabase, profilePhotoService);
 });
 
 final teacherClassesProvider = FutureProvider.autoDispose<List<ClassModel>>((

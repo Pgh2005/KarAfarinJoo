@@ -167,6 +167,7 @@ class _StudentMemberCard extends StatelessWidget {
         leading: ProfileAvatar(
           fullName: displayName,
           avatarUrl: member.avatarUrl,
+          resolvedImageUrl: member.avatarUrl,
           radius: 24,
           backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
           foregroundColor: AppTheme.primary,
