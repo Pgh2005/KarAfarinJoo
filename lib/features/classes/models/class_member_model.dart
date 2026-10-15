@@ -8,6 +8,7 @@ class ClassMemberModel {
   final String? studentName;
   final String? studentEmail;
   final String? studentNumber;
+  final String? avatarUrl;
 
   const ClassMemberModel({
     required this.id,
@@ -19,10 +20,12 @@ class ClassMemberModel {
     this.studentName,
     this.studentEmail,
     this.studentNumber,
+    this.avatarUrl,
   });
 
   factory ClassMemberModel.fromMap(Map<String, dynamic> map) {
     final profileMap = map['profiles'] as Map<String, dynamic>?;
+    final avatarUrl = (profileMap?['avatar_url'] as String?)?.trim();
 
     return ClassMemberModel(
       id: map['id'] as String,
@@ -34,6 +37,7 @@ class ClassMemberModel {
       studentName: profileMap?['full_name'] as String?,
       studentEmail: profileMap?['email'] as String?,
       studentNumber: profileMap?['student_number'] as String?,
+      avatarUrl: avatarUrl?.isNotEmpty == true ? avatarUrl : null,
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
+import 'package:karafarini/features/profile/presentation/widgets/profile_avatar.dart';
 
 class ClassMembersSection extends ConsumerStatefulWidget {
   final String classId;
@@ -143,7 +144,6 @@ class _StudentMemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final displayName = member.studentName ?? 'کاربر بدون نام';
     final displayNumber = member.studentNumber ?? 'بدون کد دانشجویی';
-    final avatarText = displayName.isNotEmpty ? displayName[0] : 'U';
 
     return Card(
       elevation: 0,
@@ -164,15 +164,12 @@ class _StudentMemberCard extends StatelessWidget {
             },
           );
         },
-        leading: CircleAvatar(
+        leading: ProfileAvatar(
+          fullName: displayName,
+          avatarUrl: member.avatarUrl,
+          radius: 24,
           backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-          child: Text(
-            avatarText,
-            style: const TextStyle(
-              color: AppTheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          foregroundColor: AppTheme.primary,
         ),
         title: Text(
           displayName,

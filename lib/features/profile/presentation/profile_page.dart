@@ -7,6 +7,7 @@ import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 import 'package:karafarini/features/profile/providers/student_profile_provider.dart';
+import 'package:karafarini/features/profile/presentation/widgets/profile_avatar.dart';
 
 class ProfilePage extends ConsumerWidget {
   final String? classId;
@@ -141,23 +142,15 @@ class ProfilePage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          child: CircleAvatar(
-                            radius: 58,
-                            backgroundColor: Colors.white,
-                            backgroundImage: profile.avatarUrl != null
-                                ? NetworkImage(profile.avatarUrl!)
-                                : null,
-                            child: profile.avatarUrl == null
-                                ? Text(
-                                    _getInitials(profile.fullName),
-                                    style: const TextStyle(
-                                      fontSize: 38,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primary,
-                                    ),
-                                  )
-                                : null,
-                          ),
+                          child: !isStudentProfile &&
+                                  profile.role == UserRole.student
+                              ? EditableStudentProfileAvatar(profile: profile)
+                              : ProfileAvatar(
+                                  fullName: profile.fullName,
+                                  avatarUrl: profile.avatarUrl,
+                                  radius: 58,
+                                  backgroundColor: Colors.white,
+                                ),
                         ),
                         const SizedBox(height: 18),
                         // Name
@@ -446,13 +439,6 @@ class ProfilePage extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  String _getInitials(String name) {
-    final words = name.trim().split(' ');
-    if (words.isEmpty) return '?';
-    if (words.length == 1) return words[0][0].toUpperCase();
-    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
   }
 
   Future<bool?> _showLogoutDialog(BuildContext context) {

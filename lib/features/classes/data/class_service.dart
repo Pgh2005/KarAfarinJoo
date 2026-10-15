@@ -195,7 +195,8 @@ class ClassService {
           profiles:student_id (
             full_name,
             email,
-            student_number
+            student_number,
+            avatar_url
           )
         ''')
         .eq('class_id', classId)

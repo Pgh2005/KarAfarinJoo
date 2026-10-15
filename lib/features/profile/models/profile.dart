@@ -34,6 +34,8 @@ class Profile {
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
+    final avatarUrl = (json['avatar_url'] as String?)?.trim();
+
     return Profile(
       id: json['id'] as String,
       role: json['role'] == 'professor' ? UserRole.professor : UserRole.student,
@@ -45,7 +47,7 @@ class Profile {
       major: json['major'] as String?,
       department: json['department'] as String?,
       bio: json['bio'] as String?,
-      avatarUrl: json['avatar_url'] as String?,
+      avatarUrl: avatarUrl?.isNotEmpty == true ? avatarUrl : null,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
