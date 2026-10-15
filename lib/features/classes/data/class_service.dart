@@ -87,6 +87,16 @@ class ClassService {
     );
   }
 
+  Future<void> removeStudentFromClass({
+    required String classId,
+    required String studentId,
+  }) async {
+    await _supabase.rpc(
+      'remove_student_from_class',
+      params: {'p_class_id': classId, 'p_student_id': studentId},
+    );
+  }
+
   Future<void> sendJoinRequest({
     required String joinCode,
     required String studentId,
