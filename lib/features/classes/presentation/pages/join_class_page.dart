@@ -5,6 +5,7 @@ import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/core/widgets/loading_indicator.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 
 class JoinClassPage extends ConsumerStatefulWidget {
@@ -78,7 +79,7 @@ class _JoinClassPageState extends ConsumerState<JoinClassPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ResponsiveScaffold(
       backgroundColor: AppTheme.surface,
       appBar: const AppBarBuilder(
         title: 'درخواست عضویت در کلاس',

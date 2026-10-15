@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
@@ -14,7 +15,7 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(currentSessionProfileProvider);
 
-    return Scaffold(
+    return ResponsiveScaffold(
       backgroundColor: AppTheme.surface,
       appBar: const AppBarBuilder(
         title: 'پروفایل',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/forms/pages/page1/presentation/personal_info_page.dart';
 import 'package:karafarini/features/forms/pages/page2/presentation/talent_page.dart';
 import 'package:karafarini/features/forms/pages/page3/presentation/values_page.dart';
@@ -95,11 +96,9 @@ class FormList extends ConsumerWidget {
     // Extract per-form progress values
     final allProgress = progressAsync.all;
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppTheme.surface,
-        appBar: AppBarBuilder(title: studentName),
+    return ResponsiveScaffold(
+      backgroundColor: AppTheme.surface,
+      appBar: AppBarBuilder(title: studentName),
         body: Column(
           children: [
             // ── Overall Progress Header ──
@@ -138,8 +137,7 @@ class FormList extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

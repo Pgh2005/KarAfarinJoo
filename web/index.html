@@ -18,21 +18,87 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="کارآفرین‌جو - مسیر رشد کسب‌و‌کار شما">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="karafarini">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>karafarini</title>
+  <!-- PWA Theme Color -->
+  <meta name="theme-color" content="#1A73E8">
+
+  <title>کارآفرین‌جو | Karafarini</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Prevent flash of unstyled content */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #F0F2F5;
+    }
+
+    /* Center the Flutter view on wide screens */
+    flutter-view {
+      display: flex;
+      justify-content: center;
+      background-color: #F0F2F5;
+    }
+
+    /* Smooth scrolling for any scrollable containers */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Better text rendering on web */
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Prevent text selection on non-editable elements for a more app-like feel */
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* Custom scrollbar for web (thin and modern) */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.15);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.25);
+    }
+
+    /* Focus outline for accessibility */
+    :focus-visible {
+      outline: 2px solid #1A73E8;
+      outline-offset: 2px;
+    }
+  </style>
 </head>
 <body>
+  <!-- passkeys_web: JS library providing the PasskeyAuthenticator global (required by supabase_flutter's passkeys dependency on web). Self-hosted from https://github.com/corbado/flutter-passkeys/releases -->
+  <script src="bundle.js" type="application/javascript"></script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

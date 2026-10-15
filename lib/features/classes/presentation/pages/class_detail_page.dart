@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/presentation/widgets/class_detail/class_detail_header.dart';
@@ -18,7 +19,7 @@ class ClassDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isProfessor = ref.watch(isProfessorProvider);
 
-    return Scaffold(
+    return ResponsiveScaffold(
       backgroundColor: AppTheme.surface,
       appBar: const AppBarBuilder(title: 'جزئیات کلاس'),
       body: SafeArea(

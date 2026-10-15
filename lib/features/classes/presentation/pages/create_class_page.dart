@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/forms/widgets/styled_save_button.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 
@@ -88,7 +89,7 @@ class _CreateClassPageState extends ConsumerState<CreateClassPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ResponsiveScaffold(
       backgroundColor: AppTheme.surface,
       appBar: const AppBarBuilder(
         title: 'ایجاد کلاس جدید',

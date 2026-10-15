@@ -107,7 +107,6 @@ windows/flutter/ephemeral/
 # =========================
 # Web
 # =========================
-lib/generated_plugin_registrant.dart
 
 # =========================
 # Misc build systems / tool caches

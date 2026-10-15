@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/classes/presentation/widgets/invite/enter_invite_code_dialog.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
@@ -57,131 +58,128 @@ class _HomePageState extends ConsumerState<HomePage> {
             ? ref.watch(teacherClassesProvider)
             : ref.watch(studentClassesProvider);
 
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Scaffold(
-            backgroundColor: AppTheme.surface,
-            appBar: AppBarBuilder(
-              title: 'کلاس‌های من',
-              leading: IconButton(
-                icon: const Icon(Icons.account_circle_outlined, size: 28),
-                onPressed: () => context.pushNamed('profile'),
-              ),
-              actions: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    final count = ref
-                        .watch(pendingInviteRequestsProvider)
-                        .maybeWhen(
-                          data: (r) => r
-                              .where(
-                                (it) =>
-                                    it.request.status ==
-                                    JoinRequestStatus.pending,
-                              )
-                              .length,
-                          orElse: () => 0,
-                        );
-                    return Stack(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.notifications_outlined),
-                          onPressed: () async {
-                            await context.pushNamed('invite-requests');
-                            ref.invalidate(pendingInviteRequestsProvider);
-                            ref.invalidate(teacherClassesProvider);
-                          },
-                        ),
-                        if (count > 0)
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+        return ResponsiveScaffold(
+          backgroundColor: AppTheme.surface,
+          appBar: AppBarBuilder(
+            title: 'کلاس‌های من',
+            leading: IconButton(
+              icon: const Icon(Icons.account_circle_outlined, size: 28),
+              onPressed: () => context.pushNamed('profile'),
+            ),
+            actions: [
+              Consumer(
+                builder: (context, ref, _) {
+                  final count = ref
+                      .watch(pendingInviteRequestsProvider)
+                      .maybeWhen(
+                        data: (r) => r
+                            .where(
+                              (it) =>
+                                  it.request.status ==
+                                  JoinRequestStatus.pending,
+                            )
+                            .length,
+                        orElse: () => 0,
+                      );
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined),
+                        onPressed: () async {
+                          await context.pushNamed('invite-requests');
+                          ref.invalidate(pendingInviteRequestsProvider);
+                          ref.invalidate(teacherClassesProvider);
+                        },
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              count > 9 ? '9+' : '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
-                              constraints: const BoxConstraints(
-                                minWidth: 18,
-                                minHeight: 18,
-                              ),
-                              child: Text(
-                                count > 9 ? '9+' : '$count',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-            body: classesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'خطا در دریافت کلاس‌ها:\n$e',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              data: (classes) => RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(currentSessionProfileProvider);
-                  if (isProfessor) {
-                    ref.invalidate(teacherClassesProvider);
-                    ref.invalidate(pendingInviteRequestsProvider);
-                    await ref.read(teacherClassesProvider.future);
-                  } else {
-                    ref.invalidate(studentClassesProvider);
-                    await ref.read(studentClassesProvider.future);
-                  }
-                },
-                child: _ClassListView(
-                  classes: classes,
-                  isProfessor: isProfessor,
-                ),
-              ),
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              backgroundColor: AppTheme.primary,
-              elevation: 4,
-              onPressed: () async {
-                if (isProfessor) {
-                  final result = await context.pushNamed('create-class');
-                  if (result == true) ref.invalidate(teacherClassesProvider);
-                } else {
-                  final result = await showDialog<bool>(
-                    context: context,
-                    builder: (_) => const EnterInviteCodeDialog(),
+                        ),
+                    ],
                   );
-                  if (result == true) ref.invalidate(studentClassesProvider);
+                },
+              ),
+            ],
+          ),
+          body: classesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'خطا در دریافت کلاس‌ها:\n$e',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            data: (classes) => RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(currentSessionProfileProvider);
+                if (isProfessor) {
+                  ref.invalidate(teacherClassesProvider);
+                  ref.invalidate(pendingInviteRequestsProvider);
+                  await ref.read(teacherClassesProvider.future);
+                } else {
+                  ref.invalidate(studentClassesProvider);
+                  await ref.read(studentClassesProvider.future);
                 }
               },
-              icon: Icon(
-                isProfessor ? Icons.add : Icons.group_add,
-                color: Colors.white,
-              ),
-              label: Text(
-                isProfessor ? 'کلاس جدید' : 'عضویت در کلاس',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: _ClassListView(
+                classes: classes,
+                isProfessor: isProfessor,
               ),
             ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.startFloat,
           ),
+          floatingActionButton: FloatingActionButton.extended(
+            backgroundColor: AppTheme.primary,
+            elevation: 4,
+            onPressed: () async {
+              if (isProfessor) {
+                final result = await context.pushNamed('create-class');
+                if (result == true) ref.invalidate(teacherClassesProvider);
+              } else {
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => const EnterInviteCodeDialog(),
+                );
+                if (result == true) ref.invalidate(studentClassesProvider);
+              }
+            },
+            icon: Icon(
+              isProfessor ? Icons.add : Icons.group_add,
+              color: Colors.white,
+            ),
+            label: Text(
+              isProfessor ? 'کلاس جدید' : 'عضویت در کلاس',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.startFloat,
         );
       },
     );

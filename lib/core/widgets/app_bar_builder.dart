@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
+import 'package:karafarini/core/utils/platform_utils.dart';
 
 class AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -15,8 +16,31 @@ class AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
     this.automaticallyImplyLeading = false,
   });
 
+  bool _canPop(BuildContext context) {
+    return Navigator.of(context).canPop();
+  }
+
+  Widget? _buildLeading(BuildContext context) {
+    // Custom leading takes priority
+    if (leading != null) return leading;
+
+    // On web, show a back button if there's a route to go back to
+    if (isWeb && _canPop(context)) {
+      return IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        onPressed: () => Navigator.of(context).pop(),
+        tooltip: 'بازگشت',
+      );
+    }
+
+    // On mobile, Flutter handles the back button via automaticallyImplyLeading
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final webLeading = _buildLeading(context);
+
     return AppBar(
       backgroundColor: AppTheme.primary,
       title: Text(
@@ -27,13 +51,13 @@ class AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: true,
-      leading: leading,
+      leading: webLeading,
       actions: actions,
       automaticallyImplyLeading: automaticallyImplyLeading,
       elevation: 0,
       iconTheme: const IconThemeData(
         color: Colors.white,
-      ), // برای دکمه بک پیش‌فرض
+      ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(height: 1, color: AppTheme.border),

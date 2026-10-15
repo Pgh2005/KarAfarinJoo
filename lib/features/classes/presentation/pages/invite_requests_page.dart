@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/classes/providers/invite_provider.dart';
 import 'package:karafarini/features/classes/models/join_request_model.dart';
@@ -19,15 +20,13 @@ class InviteRequestsPage extends ConsumerWidget {
       orElse: () => false,
     );
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppTheme.surface,
-        appBar: const AppBarBuilder(
-          title: 'درخواست‌های عضویت',
-          automaticallyImplyLeading: true,
-        ),
-        body: requestsAsync.when(
+        return ResponsiveScaffold(
+          backgroundColor: AppTheme.surface,
+          appBar: const AppBarBuilder(
+            title: 'درخواست‌های عضویت',
+            automaticallyImplyLeading: true,
+          ),
+          body: requestsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
             child: Padding(
@@ -211,8 +210,7 @@ class InviteRequestsPage extends ConsumerWidget {
             );
           },
         ),
-      ),
-    );
+      );
   }
 
   Future<void> _handleApprove(BuildContext context, WidgetRef ref, item) async {

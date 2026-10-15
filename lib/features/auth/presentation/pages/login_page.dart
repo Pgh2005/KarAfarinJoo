@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:karafarini/features/auth/data/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/core/widgets/loading_indicator.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/auth/presentation/widgets/auth_text_field.dart';
 
 class LoginPage extends StatefulWidget {
@@ -118,8 +119,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         ),
         child: Scaffold(
           backgroundColor: AppTheme.surface,
-          body: SingleChildScrollView(
-            child: Column(
+          body: ResponsiveContentWrapper(
+            child: SingleChildScrollView(
+              child: Column(
               children: [
                 // ── Hero Header ──
                 _LoginHeader(
@@ -230,7 +232,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
 

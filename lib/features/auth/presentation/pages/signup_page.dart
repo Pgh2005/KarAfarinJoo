@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:karafarini/features/auth/data/auth_services.dart';
 import 'package:karafarini/core/theme/app_Theme.dart';
 import 'package:karafarini/core/widgets/loading_indicator.dart';
+import 'package:karafarini/core/widgets/responsive_scaffold.dart';
 import 'package:karafarini/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:karafarini/features/auth/presentation/widgets/role_selector.dart';
 import 'package:karafarini/features/forms/widgets/info_hint_box.dart';
@@ -181,7 +182,8 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
         ),
         child: Scaffold(
           backgroundColor: AppTheme.surface,
-          body: CustomScrollView(
+          body: ResponsiveContentWrapper(
+            child: CustomScrollView(
             slivers: [
               // ── Hero Header ──
               SliverToBoxAdapter(
@@ -393,7 +395,8 @@ class _SignupPageState extends State<SignupPage> with TickerProviderStateMixin {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
 
