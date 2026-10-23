@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/features/feedback/data/feedback_service.dart';
 import 'package:karafarini/features/feedback/presentation/feedback_page.dart';
 
@@ -18,6 +19,12 @@ void main() {
         child: const MaterialApp(home: FeedbackPage()),
       ),
     );
+
+    final submitButton = tester.widget<ElevatedButton>(
+      find.byType(ElevatedButton),
+    );
+    expect(submitButton.style!.backgroundColor!.resolve({}), AppTheme.primary);
+    expect(submitButton.style!.foregroundColor!.resolve({}), Colors.white);
 
     await tester.tap(find.text('ارسال بازخورد'));
     await tester.pumpAndSettle();

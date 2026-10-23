@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/presentation/profile_page.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
@@ -75,6 +76,17 @@ void main() {
 
     expect(find.byTooltip('افزودن یا تغییر عکس پروفایل'), findsOneWidget);
     expect(find.text('ارائهٔ ایراد یا پیشنهاد'), findsOneWidget);
+    final feedbackButton = tester.widget<ElevatedButton>(
+      find.ancestor(
+        of: find.text('ارائهٔ ایراد یا پیشنهاد'),
+        matching: find.byType(ElevatedButton),
+      ),
+    );
+    expect(
+      feedbackButton.style!.backgroundColor!.resolve({}),
+      AppTheme.primary,
+    );
+    expect(feedbackButton.style!.foregroundColor!.resolve({}), Colors.white);
   });
 
   testWidgets('feedback action opens the feedback page', (tester) async {

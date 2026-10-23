@@ -178,8 +178,22 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 52,
-                  child: FilledButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: _isSubmitting ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     icon: _isSubmitting
                         ? const SizedBox(
                             width: 20,
