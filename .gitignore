@@ -127,3 +127,8 @@ migrate_working_dir/
 .claude/
 .freebuff/
 skills-lock.json
+
+# =========================
+# Documents
+# =========================
+docs/
