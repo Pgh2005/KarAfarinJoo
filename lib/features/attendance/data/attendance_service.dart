@@ -82,25 +82,11 @@ class AttendanceService {
     }, onConflict: 'class_id,weekday');
   }
 
-  Future<void> requestAttendance({
-    required String sessionId,
-    required String code,
-  }) async {
+  Future<void> requestAttendance(String sessionId) async {
     await _client.rpc(
       'request_class_attendance',
-      params: {'p_session_id': sessionId, 'p_code': code},
-    );
-  }
-
-  Future<String> issueAttendanceCode(String sessionId) async {
-    final result = await _client.rpc(
-      'issue_class_attendance_code',
       params: {'p_session_id': sessionId},
     );
-    if (result is! String || !RegExp(r'^[A-F0-9]{16}$').hasMatch(result)) {
-      throw const FormatException('Attendance challenge response is invalid.');
-    }
-    return result;
   }
 
   Future<void> reviewAttendance({
