@@ -287,7 +287,8 @@ class _StudentGradeCard extends StatelessWidget {
               if (member.studentNumber?.isNotEmpty == true)
                 member.studentNumber!,
               if (hasScores)
-                '${grade!.total.toStringAsFixed(1)} از ۱۱۰'
+                '${grade!.total.toStringAsFixed(1)} از ۱۱۰ • '
+                    '${grade!.scoreOutOf22.toStringAsFixed(2)} از ۲۲'
               else
                 status,
             ].join(' • '),

@@ -9,16 +9,32 @@ import 'day_picker_section.dart';
 /// (برای ذخیره در Supabase)
 class PersianDatePickerSheet extends StatefulWidget {
   final DateTime? initialDate;
+  final String title;
+  final String description;
 
-  const PersianDatePickerSheet({super.key, this.initialDate});
+  const PersianDatePickerSheet({
+    super.key,
+    this.initialDate,
+    this.title = 'انتخاب تاریخ سفر',
+    this.description = 'تاریخ شروع سفر را انتخاب کنید',
+  });
 
   /// helper برای نمایش باتم‌شیت
-  static Future<DateTime?> show(BuildContext context, {DateTime? initialDate}) {
+  static Future<DateTime?> show(
+    BuildContext context, {
+    DateTime? initialDate,
+    String title = 'انتخاب تاریخ سفر',
+    String description = 'تاریخ شروع سفر را انتخاب کنید',
+  }) {
     return showModalBottomSheet<DateTime>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => PersianDatePickerSheet(initialDate: initialDate),
+      builder: (context) => PersianDatePickerSheet(
+        initialDate: initialDate,
+        title: title,
+        description: description,
+      ),
     );
   }
 
@@ -132,8 +148,8 @@ class _PersianDatePickerSheetState extends State<PersianDatePickerSheet> {
                     children: [
                       // ── هدر ──────────────────────────────────────
                       const SizedBox(height: 8),
-                      const Text(
-                        'انتخاب تاریخ سفر',
+                      Text(
+                        widget.title,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,
@@ -143,8 +159,8 @@ class _PersianDatePickerSheetState extends State<PersianDatePickerSheet> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'تاریخ شروع سفر را انتخاب کنید',
+                      Text(
+                        widget.description,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
