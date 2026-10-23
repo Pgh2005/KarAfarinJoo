@@ -244,6 +244,11 @@ class _StudentGradeCard extends StatelessWidget {
     final isComplete = grade?.isComplete ?? false;
     final hasScores = grade != null && !grade!.isEmpty;
     final status = hasScores && isComplete ? 'تکمیل‌شده' : null;
+    final hasParticipation =
+        grade != null &&
+        (grade!.participationEntries.isNotEmpty ||
+            grade!.attendanceScore > 0 ||
+            grade!.legacyScores['class_participation'] != null);
 
     return Card(
       color: AppTheme.primaryLight,
@@ -298,6 +303,8 @@ class _StudentGradeCard extends StatelessWidget {
               member.studentNumber?.isNotEmpty == true
                   ? member.studentNumber!
                   : 'بدون کد دانشجویی',
+              if (hasParticipation)
+                'مشارکت کلاسی: ${_formatGradeScore(grade!.participationTotal)} از 20',
               if (isComplete) 'رتبه $rank',
               ?status,
             ].join('\n'),
@@ -315,6 +322,9 @@ class _StudentGradeCard extends StatelessWidget {
     );
   }
 }
+
+String _formatGradeScore(double score) =>
+    score == score.roundToDouble() ? score.toInt().toString() : '$score';
 
 class _LoadError extends StatelessWidget {
   final String message;

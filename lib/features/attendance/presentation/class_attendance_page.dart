@@ -11,6 +11,8 @@ import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../grading/providers/gradebook_provider.dart';
+
 class ClassAttendancePage extends ConsumerStatefulWidget {
   final ClassModel classModel;
 
@@ -27,6 +29,7 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
   Future<void> _refresh() async {
     ref.invalidate(attendanceOverviewProvider(widget.classModel.id));
     ref.invalidate(attendanceMembersProvider(widget.classModel.id));
+    ref.invalidate(classGradesProvider(widget.classModel.id));
     await ref.read(attendanceOverviewProvider(widget.classModel.id).future);
   }
 
