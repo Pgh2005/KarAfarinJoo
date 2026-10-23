@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:karafarini/features/profile/models/profile.dart';
 import 'package:karafarini/features/profile/presentation/profile_page.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
@@ -45,6 +46,7 @@ void main() {
     expect(find.text('student@example.com'), findsOneWidget);
     expect(find.text('12345'), findsOneWidget);
     expect(find.text('خروج از حساب کاربری'), findsNothing);
+    expect(find.text('ارائهٔ ایراد یا پیشنهاد'), findsNothing);
     expect(find.byTooltip('افزودن یا تغییر عکس پروفایل'), findsNothing);
   });
 
@@ -72,5 +74,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('افزودن یا تغییر عکس پروفایل'), findsOneWidget);
+    expect(find.text('ارائهٔ ایراد یا پیشنهاد'), findsOneWidget);
+  });
+
+  testWidgets('feedback action opens the feedback page', (tester) async {
+    final profile = Profile(
+      id: 'student-1',
+      role: UserRole.student,
+      email: 'student@example.com',
+      fullName: 'دانشجوی آزمایشی',
+      isActive: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final router = GoRouter(
+      initialLocation: '/profile',
+      routes: [
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfilePage(),
+        ),
+        GoRoute(
+          path: '/feedback',
+          name: 'feedback',
+          builder: (context, state) =>
+              const Scaffold(body: Text('صفحه بازخورد')),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentSessionProfileProvider.overrideWith((ref) async => profile),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final feedbackAction = find.text('ارائهٔ ایراد یا پیشنهاد');
+    await tester.ensureVisible(feedbackAction);
+    await tester.tap(feedbackAction);
+    await tester.pumpAndSettle();
+
+    expect(find.text('صفحه بازخورد'), findsOneWidget);
+    router.dispose();
   });
 }

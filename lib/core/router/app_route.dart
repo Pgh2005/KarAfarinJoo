@@ -14,6 +14,7 @@ import 'package:karafarini/features/home/presentation/pages/home_page.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/grading/presentation/gradebook_page.dart';
 import 'package:karafarini/features/grading/presentation/student_grade_page.dart';
+import 'package:karafarini/features/feedback/presentation/feedback_page.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -67,6 +68,11 @@ final appRouter = GoRouter(
       path: '/profile',
       name: 'profile',
       builder: (context, state) => const ProfilePage(),
+    ),
+    GoRoute(
+      path: '/feedback',
+      name: 'feedback',
+      builder: (context, state) => const FeedbackPage(),
     ),
     GoRoute(
       path: '/student-profile',

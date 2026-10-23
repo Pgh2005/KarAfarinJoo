@@ -320,6 +320,22 @@ class ProfilePage extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: FilledButton.icon(
+                            onPressed: () => context.pushNamed('feedback'),
+                            icon: const Icon(Icons.feedback_outlined, size: 20),
+                            label: const Text(
+                              'ارائهٔ ایراد یا پیشنهاد',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 24),
                       ],
                     ],
