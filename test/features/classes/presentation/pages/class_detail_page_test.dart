@@ -75,6 +75,22 @@ void main() {
     router.dispose();
   });
 
+  testWidgets('class members can open attendance', (tester) async {
+    final router = await _pumpClassDetail(
+      tester,
+      classModel: _classModel(),
+      service: _FakeClassService(),
+      currentUserId: 'student-1',
+      isProfessor: false,
+    );
+
+    await tester.tap(find.text('حضور و غیاب'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('حضور آزمایشی'), findsOneWidget);
+    router.dispose();
+  });
+
   testWidgets('student cannot see the class gradebook action', (tester) async {
     final router = await _pumpClassDetail(
       tester,
@@ -125,6 +141,11 @@ Future<GoRouter> _pumpClassDetail(
         path: '/gradebook',
         name: 'gradebook',
         builder: (context, state) => const Scaffold(body: Text('دفتر آزمایشی')),
+      ),
+      GoRoute(
+        path: '/attendance',
+        name: 'class-attendance',
+        builder: (context, state) => const Scaffold(body: Text('حضور آزمایشی')),
       ),
     ],
   );

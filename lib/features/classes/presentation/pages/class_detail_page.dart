@@ -135,6 +135,23 @@ class _ClassDetailPageState extends ConsumerState<ClassDetailPage> {
             children: [
               ClassDetailHeader(classModel: widget.classModel),
               const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => context.pushNamed(
+                    'class-attendance',
+                    extra: widget.classModel,
+                  ),
+                  icon: const Icon(Icons.fact_check_outlined),
+                  label: const Text('حضور و غیاب'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               if (isProfessor && isClassOwner) ...[
                 SizedBox(
                   width: double.infinity,

@@ -147,6 +147,7 @@ class StudentGrade {
   final Map<String, double?> legacyScores;
   final List<ParticipationEntry> participationEntries;
   final bool hasNewParticipationData;
+  final double attendanceScore;
   final double? extracurricularScore;
 
   StudentGrade({
@@ -156,6 +157,7 @@ class StudentGrade {
     Map<String, double?> legacyScores = const {},
     List<ParticipationEntry> participationEntries = const [],
     bool hasNewParticipationData = false,
+    this.attendanceScore = 0,
     this.extracurricularScore,
   }) : scores = {
          for (final component in components)
@@ -210,6 +212,7 @@ class StudentGrade {
       },
       participationEntries: participationEntries,
       hasNewParticipationData: map['participation_sessions'] != null,
+      attendanceScore: _parseScore(map['attendance_score']) ?? 0,
       extracurricularScore: _parseScore(map['extracurricular']),
     );
   }
@@ -220,12 +223,14 @@ class StudentGrade {
     return double.tryParse(value.toString());
   }
 
-  double get participationTotal {
+  double get manualParticipationTotal {
     if (hasNewParticipationData) {
       return participationEntries.fold(0, (sum, entry) => sum + entry.score);
     }
     return legacyScores['class_participation'] ?? 0;
   }
+
+  double get participationTotal => manualParticipationTotal + attendanceScore;
 
   double scoreForSection(GradeSection section) {
     final hasDetailedScore = section.components.any(
@@ -261,6 +266,7 @@ class StudentGrade {
         .length;
     final hasParticipation =
         participationEntries.isNotEmpty ||
+        attendanceScore > 0 ||
         (!hasNewParticipationData &&
             legacyScores['class_participation'] != null);
     return enteredSections + (hasParticipation ? 1 : 0);
@@ -275,8 +281,9 @@ class StudentGrade {
             hasLegacyScore(section),
       ) &&
       (participationEntries.isNotEmpty ||
-          (!hasNewParticipationData &&
-              legacyScores['class_participation'] != null));
+            attendanceScore > 0 ||
+            (!hasNewParticipationData &&
+                legacyScores['class_participation'] != null));
 
   bool get isEmpty =>
       sections.every(
@@ -287,6 +294,7 @@ class StudentGrade {
             legacyScores[section.legacyKey] == null,
       ) &&
       participationEntries.isEmpty &&
+      attendanceScore == 0 &&
       (hasNewParticipationData ||
           legacyScores['class_participation'] == null) &&
       extracurricularScore == null;
@@ -304,8 +312,11 @@ class StudentGrade {
     )) {
       return 'نمرهٔ هر جلسه نمی‌تواند منفی باشد.';
     }
+    if (!attendanceScore.isFinite || attendanceScore < 0) {
+      return 'امتیاز حضور نمی‌تواند منفی یا نامعتبر باشد.';
+    }
     if (participationTotal > participationMaxScore) {
-      return 'مجموع مشارکت کلاسی نمی‌تواند از ۲۰ بیشتر شود.';
+      return 'مجموع نمره‌های مشارکت و حضور نمی‌تواند از ۲۰ بیشتر شود.';
     }
     if (participationEntries.map((entry) => entry.dateKey).toSet().length !=
         participationEntries.length) {
@@ -326,6 +337,7 @@ class StudentGrade {
       legacyScores: legacyScores,
       participationEntries: participationEntries,
       hasNewParticipationData: hasNewParticipationData,
+      attendanceScore: attendanceScore,
       extracurricularScore: extracurricularScore,
     );
   }
@@ -338,6 +350,7 @@ class StudentGrade {
       legacyScores: legacyScores,
       participationEntries: entries,
       hasNewParticipationData: true,
+      attendanceScore: attendanceScore,
       extracurricularScore: extracurricularScore,
     );
   }
@@ -350,6 +363,7 @@ class StudentGrade {
       legacyScores: legacyScores,
       participationEntries: participationEntries,
       hasNewParticipationData: hasNewParticipationData,
+      attendanceScore: attendanceScore,
       extracurricularScore: score,
     );
   }

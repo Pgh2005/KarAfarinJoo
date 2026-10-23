@@ -15,6 +15,7 @@ import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/grading/presentation/gradebook_page.dart';
 import 'package:karafarini/features/grading/presentation/student_grade_page.dart';
 import 'package:karafarini/features/feedback/presentation/feedback_page.dart';
+import 'package:karafarini/features/attendance/presentation/class_attendance_page.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -153,6 +154,20 @@ final appRouter = GoRouter(
         }
         return const Scaffold(
           appBar: AppBarBuilder(title: 'دفتر نمرات'),
+          body: Center(child: Text('اطلاعات کلاس معتبر نیست.')),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/class-attendance',
+      name: 'class-attendance',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is ClassModel) {
+          return ClassAttendancePage(classModel: extra);
+        }
+        return const Scaffold(
+          appBar: AppBarBuilder(title: 'حضور و غیاب'),
           body: Center(child: Text('اطلاعات کلاس معتبر نیست.')),
         );
       },

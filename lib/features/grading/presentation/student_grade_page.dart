@@ -118,6 +118,7 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
       hasNewParticipationData:
           savedGrade?.hasNewParticipationData == true ||
           participationEntries.isNotEmpty,
+      attendanceScore: savedGrade?.attendanceScore ?? 0,
       extracurricularScore: _parseInput(_extracurricularController.text),
     );
   }
@@ -379,7 +380,8 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
                   ),
                   _ParticipationCard(
                     drafts: _participationDrafts,
-                    total: currentGrade.participationTotal,
+                    total: currentGrade.manualParticipationTotal,
+                    attendanceScore: currentGrade.attendanceScore,
                     legacyScore: savedGrade?.hasNewParticipationData == true
                         ? null
                         : savedGrade?.legacyScores['class_participation'],
@@ -596,6 +598,7 @@ class _GradeSectionCard extends StatelessWidget {
 class _ParticipationCard extends StatelessWidget {
   final List<_ParticipationDraft> drafts;
   final double total;
+  final double attendanceScore;
   final double? legacyScore;
   final Future<void> Function() onAdd;
   final Future<void> Function(int index) onEditDate;
@@ -606,6 +609,7 @@ class _ParticipationCard extends StatelessWidget {
   const _ParticipationCard({
     required this.drafts,
     required this.total,
+    required this.attendanceScore,
     required this.legacyScore,
     required this.onAdd,
     required this.onEditDate,
@@ -616,7 +620,8 @@ class _ParticipationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final remaining = (StudentGrade.participationMaxScore - total)
+    final combinedTotal = total + attendanceScore;
+    final remaining = (StudentGrade.participationMaxScore - combinedTotal)
         .clamp(0, StudentGrade.participationMaxScore)
         .toDouble();
     final savedLegacyScore = legacyScore;
@@ -643,17 +648,27 @@ class _ParticipationCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'مجموع جلسات: ${_formatScore(total)} از 20 • مانده: ${_formatScore(remaining)}',
+              'جلسات دستی: ${_formatScore(total)} • حضور تأییدشده: '
+              '${_formatScore(attendanceScore)} • مانده: ${_formatScore(remaining)}',
               style: const TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 12,
               ),
             ),
-            if (total > StudentGrade.participationMaxScore)
+            if (attendanceScore > 0)
               const Padding(
                 padding: EdgeInsets.only(top: 6),
                 child: Text(
-                  'جمع نمره‌های جلسات از سقف 20 بیشتر شده است.',
+                  'روزهای دارای حضور تأییدشده به‌صورت خودکار امتیاز می‌گیرند؛ '
+                  'برای همان تاریخ نمرهٔ دستی ثبت نکنید.',
+                  style: TextStyle(color: AppTheme.textSecondary, height: 1.4),
+                ),
+              ),
+            if (combinedTotal > StudentGrade.participationMaxScore)
+              const Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Text(
+                  'جمع مشارکت دستی و امتیاز حضور از سقف 20 بیشتر شده است.',
                   style: TextStyle(color: AppTheme.error),
                 ),
               ),
@@ -740,7 +755,7 @@ class _ParticipationSessionRow extends StatelessWidget {
             title: 'نمرهٔ این جلسه',
             controller: draft.scoreController,
             validator: validator,
-            helperText: 'جمع تمام جلسات حداکثر 20 نمره است',
+            helperText: 'جمع مشارکت دستی و حضور حداکثر 20 نمره است',
             icon: Icons.grade_outlined,
             onChanged: onChanged,
           ),

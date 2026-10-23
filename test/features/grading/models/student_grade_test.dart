@@ -89,6 +89,52 @@ void main() {
       expect(grade.validate(), contains('تاریخ'));
     });
 
+    test('combines attendance points with manual participation within 20', () {
+      final grade = StudentGrade.fromMap({
+        'class_id': 'class-1',
+        'student_id': 'student-1',
+        'participation_sessions': [
+          {'date': '2026-01-01', 'score': 16},
+        ],
+        'attendance_score': 4,
+      });
+
+      expect(grade.manualParticipationTotal, 16);
+      expect(grade.participationTotal, 20);
+      expect(grade.validate(), isNull);
+      expect(
+        grade.toMap(updatedBy: 'teacher-1').containsKey('attendance_score'),
+        isFalse,
+      );
+    });
+
+    test(
+      'rejects manual participation that exceeds the limit with attendance',
+      () {
+        final grade = StudentGrade.fromMap({
+          'class_id': 'class-1',
+          'student_id': 'student-1',
+          'participation_sessions': [
+            {'date': '2026-01-01', 'score': 19},
+          ],
+          'attendance_score': 2,
+        });
+
+        expect(grade.validate(), contains('حضور'));
+      },
+    );
+
+    test('counts attendance-only grades as non-empty participation', () {
+      final grade = StudentGrade.fromMap({
+        'class_id': 'class-1',
+        'student_id': 'student-1',
+        'attendance_score': 1,
+      });
+
+      expect(grade.isEmpty, isFalse);
+      expect(grade.participationTotal, 1);
+    });
+
     test('keeps legacy scores until details replace that section', () {
       final legacy = StudentGrade.fromMap({
         'class_id': 'class-1',
