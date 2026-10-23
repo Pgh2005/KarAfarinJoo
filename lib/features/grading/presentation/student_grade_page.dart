@@ -575,10 +575,7 @@ class _GradeSectionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: AppTheme.primary.withValues(alpha: 0.45),
-          width: 1.2,
-        ),
+        side: const BorderSide(color: AppTheme.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -591,7 +588,7 @@ class _GradeSectionCard extends StatelessWidget {
         title: Text(
           '${section.title} (${_formatScore(section.maxScore)} نمره)',
           style: const TextStyle(
-            color: AppTheme.primaryDark,
+            color: AppTheme.textPrimary,
             fontWeight: FontWeight.w700,
           ),
         ),

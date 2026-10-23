@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
+import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/grading/presentation/student_grade_page.dart';
@@ -44,16 +45,13 @@ void main() {
       ),
     );
     expect(expandedSection.backgroundColor, Colors.white);
-    expect(
-      tester.widget<Text>(sloganTile).style?.color,
-      const Color(0xFF0D47A1),
-    );
+    expect(tester.widget<Text>(sloganTile).style?.color, AppTheme.textPrimary);
     final sectionCard = tester.widget<Card>(
       find.ancestor(of: sloganTile, matching: find.byType(Card)),
     );
     final cardShape = sectionCard.shape! as RoundedRectangleBorder;
     final cardSide = cardShape.side;
-    expect(cardSide.color, const Color(0xFF1A73E8).withValues(alpha: 0.45));
+    expect(cardSide.color, AppTheme.border);
 
     final sessionButton = find.text('افزودن تاریخ جلسه');
     await tester.scrollUntilVisible(
