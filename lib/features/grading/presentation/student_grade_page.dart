@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/utils/app_date_formatter.dart';
@@ -380,13 +379,6 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
                     name: widget.member.studentName ?? 'دانشجوی بدون نام',
                     studentNumber: widget.member.studentNumber,
                     avatarUrl: widget.member.avatarUrl,
-                    onProfileTap: () => context.pushNamed(
-                      'student-profile',
-                      queryParameters: {
-                        'classId': widget.member.classId,
-                        'studentId': widget.member.studentId,
-                      },
-                    ),
                     total: currentGrade.total,
                   ),
                   const SizedBox(height: 16),
@@ -463,14 +455,12 @@ class _StudentHeader extends StatelessWidget {
   final String name;
   final String? studentNumber;
   final String? avatarUrl;
-  final VoidCallback onProfileTap;
   final double total;
 
   const _StudentHeader({
     required this.name,
     required this.studentNumber,
     required this.avatarUrl,
-    required this.onProfileTap,
     required this.total,
   });
 
@@ -529,11 +519,6 @@ class _StudentHeader extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'مشاهده پروفایل دانشجو',
-            onPressed: onProfileTap,
-            icon: const Icon(Icons.person_outline, color: AppTheme.primary),
-          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -585,19 +570,19 @@ class _GradeSectionCard extends StatelessWidget {
     final sectionScore = currentGrade.scoreForSection(section);
 
     return Card(
-      color: AppTheme.primaryLight,
+      color: AppTheme.cardBg,
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.16)),
+        side: const BorderSide(color: AppTheme.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        collapsedBackgroundColor: AppTheme.primaryLight,
-        backgroundColor: AppTheme.primaryLight,
+        collapsedBackgroundColor: AppTheme.cardBg,
+        backgroundColor: AppTheme.cardBg,
         iconColor: AppTheme.primary,
         collapsedIconColor: AppTheme.primary,
         title: Text(

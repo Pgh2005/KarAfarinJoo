@@ -29,6 +29,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsNothing);
     final sloganTile = find.text('شعار (2 نمره)');
     await tester.ensureVisible(sloganTile);
     await tester.tap(sloganTile);
@@ -36,6 +37,13 @@ void main() {
 
     expect(find.text('زندگی'), findsOneWidget);
     expect(find.text('کسب'), findsOneWidget);
+    final expandedSection = tester.widget<ExpansionTile>(
+      find.ancestor(
+        of: find.text('زندگی'),
+        matching: find.byType(ExpansionTile),
+      ),
+    );
+    expect(expandedSection.backgroundColor, Colors.white);
 
     final sessionButton = find.text('افزودن تاریخ جلسه');
     await tester.scrollUntilVisible(

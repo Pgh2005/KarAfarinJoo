@@ -12,7 +12,7 @@ import 'package:karafarini/features/grading/providers/gradebook_provider.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
 
 void main() {
-  testWidgets('shows the class member profile style and opens their profile', (
+  testWidgets('hides empty-grade status and opens grade entry from the card', (
     tester,
   ) async {
     final router = GoRouter(
@@ -23,19 +23,10 @@ void main() {
           builder: (context, state) => GradebookPage(classModel: _classModel()),
         ),
         GoRoute(
-          path: '/student-profile',
-          name: 'student-profile',
-          builder: (context, state) => Scaffold(
-            body: Text(
-              'profile:${state.uri.queryParameters['classId']}:'
-              '${state.uri.queryParameters['studentId']}',
-            ),
-          ),
-        ),
-        GoRoute(
           path: '/student-grade',
           name: 'student-grade',
-          builder: (context, state) => const Scaffold(body: Text('ثبت نمره')),
+          builder: (context, state) =>
+              const Scaffold(body: Text('صفحهٔ ثبت نمره')),
         ),
       ],
     );
@@ -58,13 +49,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('دانشجوی آزمایشی'), findsOneWidget);
-    expect(find.text('۱۲۳۴۵\nثبت نشده'), findsOneWidget);
-    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsOneWidget);
+    expect(find.text('۱۲۳۴۵'), findsOneWidget);
+    expect(find.text('ثبت نشده'), findsNothing);
+    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsNothing);
 
-    await tester.tap(find.byTooltip('مشاهده پروفایل دانشجو'));
+    await tester.tap(find.text('دانشجوی آزمایشی'));
     await tester.pumpAndSettle();
 
-    expect(find.text('profile:class-1:student-1'), findsOneWidget);
+    expect(find.text('صفحهٔ ثبت نمره'), findsOneWidget);
     router.dispose();
   });
 }

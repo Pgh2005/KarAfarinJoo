@@ -160,13 +160,6 @@ class _GradebookPageState extends ConsumerState<GradebookPage> {
                     member: member,
                   ),
                 ),
-                onProfileTap: () => context.pushNamed(
-                  'student-profile',
-                  queryParameters: {
-                    'classId': member.classId,
-                    'studentId': member.studentId,
-                  },
-                ),
               );
             }),
         ],
@@ -238,25 +231,19 @@ class _StudentGradeCard extends StatelessWidget {
   final StudentGrade? grade;
   final int? rank;
   final VoidCallback onTap;
-  final VoidCallback onProfileTap;
 
   const _StudentGradeCard({
     required this.member,
     required this.grade,
     required this.rank,
     required this.onTap,
-    required this.onProfileTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isComplete = grade?.isComplete ?? false;
     final hasScores = grade != null && !grade!.isEmpty;
-    final status = isComplete
-        ? 'تکمیل‌شده'
-        : hasScores
-        ? 'ناقص'
-        : 'ثبت نشده';
+    final status = hasScores ? (isComplete ? 'تکمیل‌شده' : 'ناقص') : null;
 
     return Card(
       color: AppTheme.primaryLight,
@@ -315,15 +302,10 @@ class _StudentGradeCard extends StatelessWidget {
                 '${grade!.total.toStringAsFixed(1)} از ۱۱۰ • '
                     '${grade!.scoreOutOf22.toStringAsFixed(2)} از ۲۲',
               if (isComplete) 'رتبه $rank',
-              status,
+              ?status,
             ].join('\n'),
             style: const TextStyle(color: AppTheme.textSecondary, height: 1.5),
           ),
-        ),
-        trailing: IconButton(
-          tooltip: 'مشاهده پروفایل دانشجو',
-          onPressed: onProfileTap,
-          icon: const Icon(Icons.person_outline, color: AppTheme.primary),
         ),
       ),
     );
