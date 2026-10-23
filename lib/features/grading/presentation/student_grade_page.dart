@@ -115,10 +115,10 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
       },
       legacyScores: savedGrade?.legacyScores ?? const {},
       participationEntries: participationEntries,
+      attendanceDates: savedGrade?.attendanceDates ?? const [],
       hasNewParticipationData:
           savedGrade?.hasNewParticipationData == true ||
           participationEntries.isNotEmpty,
-      attendanceScore: savedGrade?.attendanceScore ?? 0,
       extracurricularScore: _parseInput(_extracurricularController.text),
     );
   }
@@ -382,6 +382,7 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
                     drafts: _participationDrafts,
                     total: currentGrade.manualParticipationTotal,
                     attendanceScore: currentGrade.attendanceScore,
+                    activities: currentGrade.datedParticipationEntries,
                     legacyScore: savedGrade?.hasNewParticipationData == true
                         ? null
                         : savedGrade?.legacyScores['class_participation'],
@@ -599,6 +600,7 @@ class _ParticipationCard extends StatelessWidget {
   final List<_ParticipationDraft> drafts;
   final double total;
   final double attendanceScore;
+  final List<ParticipationEntry> activities;
   final double? legacyScore;
   final Future<void> Function() onAdd;
   final Future<void> Function(int index) onEditDate;
@@ -610,6 +612,7 @@ class _ParticipationCard extends StatelessWidget {
     required this.drafts,
     required this.total,
     required this.attendanceScore,
+    required this.activities,
     required this.legacyScore,
     required this.onAdd,
     required this.onEditDate,
@@ -648,8 +651,9 @@ class _ParticipationCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'جلسات دستی: ${_formatScore(total)} • حضور تأییدشده: '
-              '${_formatScore(attendanceScore)} • مانده: ${_formatScore(remaining)}',
+              'مجموع فعالیت‌های تاریخ‌دار: '
+              '${_formatScore(combinedTotal)} از 20 • مانده: '
+              '${_formatScore(remaining)}',
               style: const TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 12,
@@ -659,8 +663,7 @@ class _ParticipationCard extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 6),
                 child: Text(
-                  'روزهای دارای حضور تأییدشده به‌صورت خودکار امتیاز می‌گیرند؛ '
-                  'برای همان تاریخ نمرهٔ دستی ثبت نکنید.',
+                  'حضور تأییدشده به‌عنوان ۱ نمره در فعالیت همان تاریخ ثبت می‌شود.',
                   style: TextStyle(color: AppTheme.textSecondary, height: 1.4),
                 ),
               ),
@@ -684,16 +687,31 @@ class _ParticipationCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
-            for (var index = 0; index < drafts.length; index++)
-              _ParticipationSessionRow(
-                key: ValueKey(drafts[index].date?.toIso8601String()),
+            ...activities.map((activity) {
+              final date = activity.date;
+              final index = drafts.indexWhere(
+                (draft) => _dateKey(draft.date!) == _dateKey(date),
+              );
+              if (index < 0) {
+                return _AttendanceParticipationRow(
+                  date: date,
+                  score: activity.score,
+                );
+              }
+              return _ParticipationSessionRow(
+                key: ValueKey(date.toIso8601String()),
                 index: index,
                 draft: drafts[index],
+                hasAttendance:
+                    activity.score >
+                    (_parseScoreText(drafts[index].scoreController.text) ?? 0),
+                activityScore: activity.score,
                 validator: validator,
                 onEditDate: onEditDate,
                 onRemove: onRemove,
                 onChanged: onChanged,
-              ),
+              );
+            }),
             OutlinedButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add),
@@ -709,6 +727,8 @@ class _ParticipationCard extends StatelessWidget {
 class _ParticipationSessionRow extends StatelessWidget {
   final int index;
   final _ParticipationDraft draft;
+  final bool hasAttendance;
+  final double activityScore;
   final Future<void> Function(int index) onEditDate;
   final void Function(_ParticipationDraft draft) onRemove;
   final VoidCallback onChanged;
@@ -718,6 +738,8 @@ class _ParticipationSessionRow extends StatelessWidget {
     super.key,
     required this.index,
     required this.draft,
+    required this.hasAttendance,
+    required this.activityScore,
     required this.onEditDate,
     required this.onRemove,
     required this.onChanged,
@@ -759,10 +781,87 @@ class _ParticipationSessionRow extends StatelessWidget {
             icon: Icons.grade_outlined,
             onChanged: onChanged,
           ),
+          if (hasAttendance)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'حضور تأییدشده در همین تاریخ: +۱ نمره',
+                    style: TextStyle(
+                      color: AppTheme.success,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'نمرهٔ مجموع این فعالیت: ${_formatScore(activityScore)}',
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
+}
+
+class _AttendanceParticipationRow extends StatelessWidget {
+  final DateTime date;
+  final double score;
+
+  const _AttendanceParticipationRow({required this.date, required this.score});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.event_available_outlined,
+            color: AppTheme.primary,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${AppDateFormatter.toJalali(date)} • حضور تأییدشده',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Text(
+            '+${_formatScore(score)}',
+            style: const TextStyle(
+              color: AppTheme.primaryDark,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+String _dateKey(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';
+
+double? _parseScoreText(String value) {
+  final normalized = _normalizeScoreInput(value);
+  if (normalized.isEmpty) return null;
+  return double.tryParse(normalized);
 }
 
 class _ExtracurricularCard extends StatelessWidget {

@@ -165,8 +165,79 @@ using (
 );
 
 alter table public.class_student_grades
-  add column attendance_score numeric(5, 2) not null default 0
-    check (attendance_score between 0 and 20);
+  add column attendance_dates date[] not null default '{}'::date[];
+
+revoke insert, update on public.class_student_grades from authenticated;
+grant insert (
+  class_id,
+  student_id,
+  slogan,
+  exam,
+  growth_plan,
+  products,
+  business_17,
+  book,
+  talent,
+  business_6,
+  class_participation,
+  slogan_life,
+  slogan_business,
+  growth_plan_table,
+  growth_plan_class_improvement,
+  products_table,
+  products_new,
+  products_presentation,
+  business_17_table,
+  business_17_quality,
+  business_17_presentation,
+  book_presentation,
+  book_sentences,
+  book_question,
+  talent_test,
+  talent_intelligence,
+  business_6_trader,
+  business_6_related,
+  extracurricular,
+  participation_sessions,
+  updated_by,
+  updated_at
+)
+on public.class_student_grades to authenticated;
+grant update (
+  class_id,
+  student_id,
+  slogan,
+  exam,
+  growth_plan,
+  products,
+  business_17,
+  book,
+  talent,
+  business_6,
+  class_participation,
+  slogan_life,
+  slogan_business,
+  growth_plan_table,
+  growth_plan_class_improvement,
+  products_table,
+  products_new,
+  products_presentation,
+  business_17_table,
+  business_17_quality,
+  business_17_presentation,
+  book_presentation,
+  book_sentences,
+  book_question,
+  talent_test,
+  talent_intelligence,
+  business_6_trader,
+  business_6_related,
+  extracurricular,
+  participation_sessions,
+  updated_by,
+  updated_at
+)
+on public.class_student_grades to authenticated;
 
 create or replace function public.validate_class_student_grade_details()
 returns trigger
@@ -179,9 +250,19 @@ declare
   parsed_date date;
   score_value numeric;
   manual_participation numeric := 0;
-  attendance_points numeric := coalesce(new.attendance_score, 0);
+  attendance_points numeric := cardinality(new.attendance_dates);
   seen_dates date[] := array[]::date[];
 begin
+  if exists (
+    select 1
+    from unnest(new.attendance_dates) as dates(attendance_date)
+    group by attendance_date
+    having count(*) > 1
+  ) then
+    raise exception 'Attendance dates must be unique.'
+      using errcode = '23514';
+  end if;
+
   if new.participation_sessions is not null then
     if jsonb_typeof(new.participation_sessions) is distinct from 'array' then
       raise exception 'Participation sessions must be a JSON array.'
@@ -217,21 +298,6 @@ begin
           using errcode = '23514';
       end if;
 
-      if exists (
-        select 1
-        from public.class_attendance_records as record
-        join public.class_attendance_sessions as attendance_session
-          on attendance_session.id = record.session_id
-        where record.class_id = new.class_id
-          and record.student_id = new.student_id
-          and record.status = 'approved'
-          and attendance_session.session_date = parsed_date
-      ) then
-        raise exception
-          'A date with approved attendance cannot also have manual participation.'
-          using errcode = '23514';
-      end if;
-
       if parsed_date = any(seen_dates) then
         raise exception 'Only one participation score is allowed per date.'
           using errcode = '23514';
@@ -255,13 +321,13 @@ begin
     manual_participation := coalesce(new.class_participation, 0);
   end if;
 
-  if attendance_points < 0 or attendance_points > 20 then
-    raise exception 'Attendance points must be between 0 and 20.'
+  if attendance_points > 20 then
+    raise exception 'Attendance points cannot exceed 20.'
       using errcode = '23514';
   end if;
 
   if manual_participation + attendance_points > 20 then
-    raise exception 'Manual and attendance participation cannot total more than 20.'
+    raise exception 'Class activity and attendance points cannot total more than 20.'
       using errcode = '23514';
   end if;
 
@@ -272,7 +338,7 @@ $function$;
 drop trigger if exists validate_class_student_grade_details_before_save
   on public.class_student_grades;
 create trigger validate_class_student_grade_details_before_save
-before insert or update of participation_sessions, class_participation, attendance_score
+before insert or update of participation_sessions, class_participation, attendance_dates
 on public.class_student_grades
 for each row
 execute function public.validate_class_student_grade_details();
@@ -453,8 +519,6 @@ set search_path = pg_catalog, public, auth
 as $function$
 declare
   attendance_record public.class_attendance_records%rowtype;
-  manual_points numeric := 0;
-  existing_attendance_points numeric := 0;
 begin
   if auth.uid() is null or p_status not in ('approved', 'rejected') then
     raise exception 'A valid attendance decision is required.'
@@ -487,33 +551,6 @@ begin
     )
   );
 
-  if p_status = 'approved' and attendance_record.status <> 'approved' then
-    select
-      case
-        when grade.participation_sessions is not null then
-          coalesce((
-            select sum((entry ->> 'score')::numeric)
-            from jsonb_array_elements(grade.participation_sessions) as session(entry)
-          ), 0)
-        else coalesce(grade.class_participation, 0)
-      end,
-      coalesce(grade.attendance_score, 0)
-    into manual_points, existing_attendance_points
-    from public.class_student_grades as grade
-    where grade.class_id = attendance_record.class_id
-      and grade.student_id = attendance_record.student_id;
-
-    if not found then
-      manual_points := 0;
-      existing_attendance_points := 0;
-    end if;
-
-    if manual_points + existing_attendance_points + 1 > 20 then
-      raise exception 'This approval would exceed the 20-point participation limit.'
-        using errcode = '23514';
-    end if;
-  end if;
-
   update public.class_attendance_records
   set
     status = p_status,
@@ -530,7 +567,7 @@ security definer
 set search_path = pg_catalog, public, auth
 as $function$
 declare
-  attendance_points numeric;
+  attendance_points integer;
 begin
   if auth.uid() is null then
     raise exception 'Authentication is required.'
@@ -558,7 +595,7 @@ begin
       using errcode = '42501';
   end if;
 
-  select coalesce(grade.attendance_score, 0)
+  select cardinality(grade.attendance_dates)
   into attendance_points
   from public.class_student_grades as grade
   where grade.class_id = p_class_id
@@ -575,16 +612,21 @@ security definer
 set search_path = pg_catalog, public, auth
 as $function$
 declare
-  approved_count integer;
+  approved_dates date[];
   reviewer_id text;
 begin
   perform pg_advisory_xact_lock(
     hashtextextended(new.class_id || ':' || new.student_id, 0)
   );
 
-  select count(*)::integer
-  into approved_count
+  select coalesce(
+    array_agg(attendance_session.session_date order by attendance_session.session_date),
+    '{}'::date[]
+  )
+  into approved_dates
   from public.class_attendance_records as record
+  join public.class_attendance_sessions as attendance_session
+    on attendance_session.id = record.session_id
   where record.class_id = new.class_id
     and record.student_id = new.student_id
     and record.status = 'approved';
@@ -592,13 +634,16 @@ begin
   reviewer_id := coalesce(new.reviewed_by, auth.uid()::text, 'attendance-system');
 
   insert into public.class_student_grades (
-    class_id, student_id, attendance_score, updated_by
+    class_id, student_id, attendance_dates, updated_by
   )
   values (
-    new.class_id, new.student_id, least(20, approved_count), reviewer_id
+    new.class_id, new.student_id, approved_dates, reviewer_id
   )
   on conflict (class_id, student_id)
-  do update set attendance_score = least(20, approved_count);
+  do update set
+    attendance_dates = excluded.attendance_dates,
+    updated_by = excluded.updated_by,
+    updated_at = now();
 
   return new;
 end;

@@ -89,38 +89,50 @@ void main() {
       expect(grade.validate(), contains('تاریخ'));
     });
 
-    test('combines attendance points with manual participation within 20', () {
+    test('records attendance as a dated participation activity', () {
       final grade = StudentGrade.fromMap({
         'class_id': 'class-1',
         'student_id': 'student-1',
         'participation_sessions': [
-          {'date': '2026-01-01', 'score': 16},
+          {'date': '2026-01-01', 'score': 2},
         ],
-        'attendance_score': 4,
+        'attendance_dates': ['2026-01-01', '2026-01-08'],
       });
 
-      expect(grade.manualParticipationTotal, 16);
-      expect(grade.participationTotal, 20);
+      expect(grade.manualParticipationTotal, 2);
+      expect(grade.attendanceScore, 2);
+      expect(grade.participationTotal, 4);
+      expect(
+        grade.datedParticipationEntries.map((entry) => entry.toMap()).toList(),
+        [
+          {'date': '2026-01-01', 'score': 3},
+          {'date': '2026-01-08', 'score': 1},
+        ],
+      );
+      expect(grade.copyWithScore('exam', 1).attendanceDates, [
+        DateTime(2026, 1, 1),
+        DateTime(2026, 1, 8),
+      ]);
       expect(grade.validate(), isNull);
       expect(
-        grade.toMap(updatedBy: 'teacher-1').containsKey('attendance_score'),
+        grade.toMap(updatedBy: 'teacher-1').containsKey('attendance_dates'),
         isFalse,
       );
     });
 
     test(
-      'rejects manual participation that exceeds the limit with attendance',
+      'rejects combined manual participation and attendance above twenty',
       () {
         final grade = StudentGrade.fromMap({
           'class_id': 'class-1',
           'student_id': 'student-1',
           'participation_sessions': [
-            {'date': '2026-01-01', 'score': 19},
+            {'date': '2026-01-01', 'score': 19.5},
           ],
-          'attendance_score': 2,
+          'attendance_dates': ['2026-01-01'],
         });
 
-        expect(grade.validate(), contains('حضور'));
+        expect(grade.validate(), contains('۲۰'));
       },
     );
 
@@ -128,11 +140,12 @@ void main() {
       final grade = StudentGrade.fromMap({
         'class_id': 'class-1',
         'student_id': 'student-1',
-        'attendance_score': 1,
+        'attendance_dates': ['2026-01-01'],
       });
 
       expect(grade.isEmpty, isFalse);
       expect(grade.participationTotal, 1);
+      expect(grade.datedParticipationEntries.single.score, 1);
     });
 
     test('keeps legacy scores until details replace that section', () {

@@ -147,7 +147,7 @@ class StudentGrade {
   final Map<String, double?> legacyScores;
   final List<ParticipationEntry> participationEntries;
   final bool hasNewParticipationData;
-  final double attendanceScore;
+  final List<DateTime> attendanceDates;
   final double? extracurricularScore;
 
   StudentGrade({
@@ -157,7 +157,7 @@ class StudentGrade {
     Map<String, double?> legacyScores = const {},
     List<ParticipationEntry> participationEntries = const [],
     bool hasNewParticipationData = false,
-    this.attendanceScore = 0,
+    List<DateTime> attendanceDates = const [],
     this.extracurricularScore,
   }) : scores = {
          for (final component in components)
@@ -171,6 +171,9 @@ class StudentGrade {
        participationEntries = List.unmodifiable(
          participationEntries.toList()
            ..sort((a, b) => a.date.compareTo(b.date)),
+       ),
+       attendanceDates = List.unmodifiable(
+         attendanceDates.toList()..sort((a, b) => a.compareTo(b)),
        ),
        hasNewParticipationData =
            hasNewParticipationData || participationEntries.isNotEmpty;
@@ -212,7 +215,9 @@ class StudentGrade {
       },
       participationEntries: participationEntries,
       hasNewParticipationData: map['participation_sessions'] != null,
-      attendanceScore: _parseScore(map['attendance_score']) ?? 0,
+      attendanceDates: (map['attendance_dates'] as List<dynamic>? ?? const [])
+          .map((date) => DateTime.parse(date as String))
+          .toList(),
       extracurricularScore: _parseScore(map['extracurricular']),
     );
   }
@@ -231,6 +236,26 @@ class StudentGrade {
   }
 
   double get participationTotal => manualParticipationTotal + attendanceScore;
+
+  double get attendanceScore => attendanceDates.length.toDouble();
+
+  List<ParticipationEntry> get datedParticipationEntries {
+    final entriesByDate = {
+      for (final entry in participationEntries) entry.dateKey: entry,
+    };
+
+    for (final date in attendanceDates) {
+      final key = _dateKey(date);
+      final manualEntry = entriesByDate[key];
+      entriesByDate[key] = ParticipationEntry(
+        date: date,
+        score: (manualEntry?.score ?? 0) + 1,
+      );
+    }
+
+    return entriesByDate.values.toList()
+      ..sort((first, second) => first.date.compareTo(second.date));
+  }
 
   double scoreForSection(GradeSection section) {
     final hasDetailedScore = section.components.any(
@@ -337,7 +362,7 @@ class StudentGrade {
       legacyScores: legacyScores,
       participationEntries: participationEntries,
       hasNewParticipationData: hasNewParticipationData,
-      attendanceScore: attendanceScore,
+      attendanceDates: attendanceDates,
       extracurricularScore: extracurricularScore,
     );
   }
@@ -350,7 +375,7 @@ class StudentGrade {
       legacyScores: legacyScores,
       participationEntries: entries,
       hasNewParticipationData: true,
-      attendanceScore: attendanceScore,
+      attendanceDates: attendanceDates,
       extracurricularScore: extracurricularScore,
     );
   }
@@ -363,7 +388,7 @@ class StudentGrade {
       legacyScores: legacyScores,
       participationEntries: participationEntries,
       hasNewParticipationData: hasNewParticipationData,
-      attendanceScore: attendanceScore,
+      attendanceDates: attendanceDates,
       extracurricularScore: score,
     );
   }
@@ -392,4 +417,9 @@ class StudentGrade {
       'updated_at': DateTime.now().toIso8601String(),
     };
   }
+
+  static String _dateKey(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
 }
