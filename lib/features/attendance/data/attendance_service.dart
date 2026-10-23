@@ -70,16 +70,22 @@ class AttendanceService {
     required int weekday,
     required String startsAt,
     required String endsAt,
-    required bool isActive,
   }) async {
     await _client.from('class_attendance_schedules').upsert({
       'class_id': classId,
       'weekday': weekday,
       'starts_at': startsAt,
       'ends_at': endsAt,
-      'is_active': isActive,
+      'is_active': true,
       'updated_at': DateTime.now().toIso8601String(),
     }, onConflict: 'class_id,weekday');
+  }
+
+  Future<void> deleteSchedule(int scheduleId) async {
+    await _client
+        .from('class_attendance_schedules')
+        .delete()
+        .eq('id', scheduleId);
   }
 
   Future<void> requestAttendance(String sessionId) async {

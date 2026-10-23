@@ -69,7 +69,6 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
             weekday: saved.weekday,
             startsAt: saved.startsAt,
             endsAt: saved.endsAt,
-            isActive: saved.isActive,
           ),
     );
   }
@@ -98,17 +97,13 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
     );
   }
 
-  Future<void> _toggleScheduleActive(AttendanceSchedule schedule) async {
-    final shouldContinue = await showDialog<bool>(
+  Future<void> _deleteSchedule(AttendanceSchedule schedule) async {
+    final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(
-          schedule.isActive ? 'حذف روز از برنامه' : 'بازگرداندن روز به برنامه',
-        ),
+        title: const Text('حذف از برنامهٔ هفتگی'),
         content: Text(
-          schedule.isActive
-              ? 'این روز از برنامهٔ هفتگی آینده غیرفعال می‌شود. اطلاعات جلسات گذشته حذف نخواهد شد.'
-              : 'این روز دوباره در برنامهٔ هفتگی فعال می‌شود.',
+          'برنامهٔ ${_weekdayName(schedule.weekday)} از این کلاس حذف می‌شود و دیگر تکرار نخواهد شد. جلسه‌ها و سوابق حضور قبلی حفظ می‌شوند.',
         ),
         actions: [
           TextButton(
@@ -117,23 +112,15 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(schedule.isActive ? 'غیرفعال‌کردن' : 'فعال‌کردن'),
+            child: const Text('حذف برنامه'),
           ),
         ],
       ),
     );
-    if (shouldContinue != true || !mounted) return;
+    if (shouldDelete != true || !mounted) return;
 
     await _perform(
-      () => ref
-          .read(attendanceServiceProvider)
-          .saveSchedule(
-            classId: schedule.classId,
-            weekday: schedule.weekday,
-            startsAt: schedule.startsAt,
-            endsAt: schedule.endsAt,
-            isActive: !schedule.isActive,
-          ),
+      () => ref.read(attendanceServiceProvider).deleteSchedule(schedule.id),
     );
   }
 
@@ -179,17 +166,15 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
                 _ClassAttendanceHeader(className: widget.classModel.title),
                 const SizedBox(height: 16),
                 _ScheduleSection(
-                  schedules: isProfessor
-                      ? overview.schedules
-                      : overview.schedules
-                            .where((schedule) => schedule.isActive)
-                            .toList(),
+                  schedules: overview.schedules
+                      .where((schedule) => schedule.isActive)
+                      .toList(),
                   canEdit: isProfessor,
                   onAdd: isProfessor ? () => _editSchedule() : null,
                   onEdit: isProfessor
                       ? (schedule) => _editSchedule(schedule: schedule)
                       : null,
-                  onToggleActive: isProfessor ? _toggleScheduleActive : null,
+                  onDelete: isProfessor ? _deleteSchedule : null,
                 ),
                 const SizedBox(height: 16),
                 _TodaySessionCard(
@@ -292,14 +277,14 @@ class _ScheduleSection extends StatelessWidget {
   final bool canEdit;
   final VoidCallback? onAdd;
   final ValueChanged<AttendanceSchedule>? onEdit;
-  final ValueChanged<AttendanceSchedule>? onToggleActive;
+  final ValueChanged<AttendanceSchedule>? onDelete;
 
   const _ScheduleSection({
     required this.schedules,
     required this.canEdit,
     required this.onAdd,
     required this.onEdit,
-    required this.onToggleActive,
+    required this.onDelete,
   });
 
   @override
@@ -327,8 +312,7 @@ class _ScheduleSection extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(_weekdayName(schedule.weekday)),
                 subtitle: Text(
-                  '${_shortTime(schedule.startsAt)} تا ${_shortTime(schedule.endsAt)}'
-                  '${schedule.isActive ? '' : ' • غیرفعال'}',
+                  '${_shortTime(schedule.startsAt)} تا ${_shortTime(schedule.endsAt)}',
                 ),
                 trailing: canEdit
                     ? Row(
@@ -340,20 +324,26 @@ class _ScheduleSection extends StatelessWidget {
                             icon: const Icon(Icons.edit_outlined),
                           ),
                           IconButton(
-                            tooltip: schedule.isActive
-                                ? 'حذف از برنامهٔ هفتگی'
-                                : 'بازگرداندن به برنامهٔ هفتگی',
-                            onPressed: () => onToggleActive!(schedule),
-                            icon: Icon(
-                              schedule.isActive
-                                  ? Icons.event_busy_outlined
-                                  : Icons.restore_outlined,
-                            ),
+                            tooltip:
+                                'حذف ${_weekdayName(schedule.weekday)} از برنامهٔ هفتگی',
+                            onPressed: () => onDelete!(schedule),
+                            icon: const Icon(Icons.delete_outline),
                           ),
                         ],
                       )
                     : null,
               ),
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'برنامهٔ هر روز هفته به‌صورت خودکار در همان روزهای هفته تکرار می‌شود.',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ),
           if (canEdit) ...[
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -953,7 +943,6 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
   late int _weekday;
   late TimeOfDay _startsAt;
   late TimeOfDay _endsAt;
-  late bool _isActive;
 
   @override
   void initState() {
@@ -964,7 +953,6 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
         _parseTime(schedule?.startsAt) ?? const TimeOfDay(hour: 8, minute: 0);
     _endsAt =
         _parseTime(schedule?.endsAt) ?? const TimeOfDay(hour: 9, minute: 0);
-    _isActive = schedule?.isActive ?? true;
   }
 
   Future<void> _pickTime({required bool start}) async {
@@ -997,7 +985,6 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
         weekday: _weekday,
         startsAt: _formatTime(_startsAt),
         endsAt: _formatTime(_endsAt),
-        isActive: _isActive,
       ),
     );
   }
@@ -1051,13 +1038,6 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
               ),
             ],
           ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('برنامه فعال باشد'),
-            value: _isActive,
-            onChanged: (value) => setState(() => _isActive = value),
-          ),
-          const SizedBox(height: 8),
           FilledButton(onPressed: _save, child: const Text('ذخیره برنامه')),
         ],
       ),
@@ -1069,13 +1049,11 @@ class _ScheduleDraft {
   final int weekday;
   final String startsAt;
   final String endsAt;
-  final bool isActive;
 
   const _ScheduleDraft({
     required this.weekday,
     required this.startsAt,
     required this.endsAt,
-    required this.isActive,
   });
 }
 
