@@ -23,6 +23,8 @@ class ClassAttendancePage extends ConsumerStatefulWidget {
 
 class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
   bool _isSaving = false;
+  String? _attendanceCode;
+  String? _attendanceCodeSessionId;
 
   Future<void> _refresh() async {
     ref.invalidate(attendanceOverviewProvider(widget.classModel.id));
@@ -95,6 +97,41 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
             studentId: member.studentId,
             status: status,
           ),
+    );
+  }
+
+  Future<void> _issueAttendanceCode(AttendanceSession session) async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      final code = await ref
+          .read(attendanceServiceProvider)
+          .issueAttendanceCode(session.id);
+      if (!mounted) return;
+      setState(() {
+        _attendanceCode = code;
+        _attendanceCodeSessionId = session.id;
+      });
+      await _refresh();
+    } on PostgrestException catch (error) {
+      _showMessage('ساخت کد حضور ناموفق بود: ${error.message}');
+    } on Exception catch (error) {
+      _showMessage('ساخت کد حضور ناموفق بود: $error');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _requestAttendance(AttendanceSession session) async {
+    final code = await showDialog<String>(
+      context: context,
+      builder: (context) => const _AttendanceCodeDialog(),
+    );
+    if (code == null || !mounted) return;
+    await _perform(
+      () => ref
+          .read(attendanceServiceProvider)
+          .requestAttendance(sessionId: session.id, code: code),
     );
   }
 
@@ -200,13 +237,16 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
                   studentAttendanceScore: overview.studentAttendanceDates.length
                       .toDouble(),
                   saving: _isSaving,
+                  attendanceCode:
+                      _attendanceCodeSessionId == overview.todaySession?.id
+                      ? _attendanceCode
+                      : null,
+                  onIssueCode: overview.todaySession == null
+                      ? null
+                      : () => _issueAttendanceCode(overview.todaySession!),
                   onRequest: overview.todaySession == null
                       ? null
-                      : () => _perform(
-                          () => ref
-                              .read(attendanceServiceProvider)
-                              .requestAttendance(overview.todaySession!.id),
-                        ),
+                      : () => _requestAttendance(overview.todaySession!),
                 ),
                 if (isProfessor) ...[
                   const SizedBox(height: 16),
@@ -376,6 +416,8 @@ class _TodaySessionCard extends StatelessWidget {
   final double studentAttendanceScore;
   final bool saving;
   final VoidCallback? onRequest;
+  final String? attendanceCode;
+  final VoidCallback? onIssueCode;
 
   const _TodaySessionCard({
     required this.session,
@@ -385,6 +427,8 @@ class _TodaySessionCard extends StatelessWidget {
     required this.studentAttendanceScore,
     required this.saving,
     required this.onRequest,
+    required this.attendanceCode,
+    required this.onIssueCode,
   });
 
   @override
@@ -417,13 +461,57 @@ class _TodaySessionCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (isProfessor)
+                if (isProfessor) ...[
                   _ScoreBox(
                     label: 'حضورهای تأییدشده',
                     value: '$approvedCount نفر',
                     detail: 'هر تأیید یک امتیاز مشارکت ثبت می‌کند.',
-                  )
-                else ...[
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'برای درخواست حضور، دانشجو باید کدی را وارد کند که در کلاس نمایش می‌دهید. درخواست به‌تنهایی اثبات حضور نیست؛ پیش از تأیید، حضور دانشجو را بررسی کنید.',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (attendanceCode != null && session!.isRequestOpen) ...[
+                    Semantics(
+                      label: 'کد حضور کلاس',
+                      child: SelectableText(
+                        attendanceCode!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          letterSpacing: 3,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  OutlinedButton.icon(
+                    onPressed: saving || !session!.isRequestOpen
+                        ? null
+                        : onIssueCode,
+                    icon: const Icon(Icons.key_outlined),
+                    label: Text(
+                      attendanceCode == null || !session!.isRequestOpen
+                          ? 'نمایش کد درخواست حضور'
+                          : 'ساخت کد جدید',
+                    ),
+                  ),
+                  const Text(
+                    'کد فقط در بازهٔ درخواست فعال است و تا پایان کلاس اعتبار دارد؛ آن را فقط به دانشجویان حاضر نشان دهید.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ] else ...[
                   _ScoreBox(
                     label: 'امتیاز حضور شما',
                     value: _formatPoints(studentAttendanceScore),
@@ -433,19 +521,32 @@ class _TodaySessionCard extends StatelessWidget {
                   if (ownRecord != null)
                     _StatusLabel(status: ownRecord.status)
                   else if (session!.isRequestOpen)
-                    FilledButton.icon(
-                      onPressed: saving ? null : onRequest,
-                      icon: saving
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.how_to_reg_outlined),
-                      label: const Text('ثبت درخواست حضور'),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          'در کلاس از استاد کد حضور را بگیرید. درخواست بدون کد معتبر ثبت نمی‌شود.',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton.icon(
+                          onPressed: saving ? null : onRequest,
+                          icon: saving
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.how_to_reg_outlined),
+                          label: const Text('واردکردن کد و درخواست حضور'),
+                        ),
+                      ],
                     )
                   else
                     const Text(
@@ -924,6 +1025,65 @@ class _AttendanceLoadError extends StatelessWidget {
         ],
       ),
     ),
+  );
+}
+
+class _AttendanceCodeDialog extends StatefulWidget {
+  const _AttendanceCodeDialog();
+
+  @override
+  State<_AttendanceCodeDialog> createState() => _AttendanceCodeDialogState();
+}
+
+class _AttendanceCodeDialogState extends State<_AttendanceCodeDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _codeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.of(context).pop(_codeController.text.trim().toUpperCase());
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('کد حضور کلاس'),
+    content: Form(
+      key: _formKey,
+      child: TextFormField(
+        controller: _codeController,
+        autofocus: true,
+        maxLength: 16,
+        textCapitalization: TextCapitalization.characters,
+        keyboardType: TextInputType.visiblePassword,
+        autocorrect: false,
+        enableSuggestions: false,
+        decoration: const InputDecoration(
+          labelText: 'کد نمایش‌داده‌شده در کلاس',
+          helperText: 'کد را از استاد بگیرید.',
+        ),
+        validator: (value) {
+          final code = value?.trim() ?? '';
+          if (!RegExp(r'^[A-Fa-f0-9]{16}$').hasMatch(code)) {
+            return 'کد باید ۱۶ نویسهٔ انگلیسی و عددی باشد.';
+          }
+          return null;
+        },
+        onFieldSubmitted: (_) => _submit(),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('انصراف'),
+      ),
+      FilledButton(onPressed: _submit, child: const Text('ثبت درخواست')),
+    ],
   );
 }
 

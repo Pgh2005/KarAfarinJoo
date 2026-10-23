@@ -22,9 +22,8 @@ class AttendanceService {
         .order('weekday');
     final schedules = (scheduleRows as List)
         .map(
-          (row) => AttendanceSchedule.fromMap(
-            Map<String, dynamic>.from(row as Map),
-          ),
+          (row) =>
+              AttendanceSchedule.fromMap(Map<String, dynamic>.from(row as Map)),
         )
         .toList(growable: false);
 
@@ -58,9 +57,8 @@ class AttendanceService {
       todaySession: session,
       records: (recordRows as List)
           .map(
-            (row) => AttendanceRecord.fromMap(
-              Map<String, dynamic>.from(row as Map),
-            ),
+            (row) =>
+                AttendanceRecord.fromMap(Map<String, dynamic>.from(row as Map)),
           )
           .toList(growable: false),
       studentAttendanceDates: studentAttendanceDates,
@@ -84,11 +82,25 @@ class AttendanceService {
     }, onConflict: 'class_id,weekday');
   }
 
-  Future<void> requestAttendance(String sessionId) async {
+  Future<void> requestAttendance({
+    required String sessionId,
+    required String code,
+  }) async {
     await _client.rpc(
       'request_class_attendance',
+      params: {'p_session_id': sessionId, 'p_code': code},
+    );
+  }
+
+  Future<String> issueAttendanceCode(String sessionId) async {
+    final result = await _client.rpc(
+      'issue_class_attendance_code',
       params: {'p_session_id': sessionId},
     );
+    if (result is! String || !RegExp(r'^[A-F0-9]{16}$').hasMatch(result)) {
+      throw const FormatException('Attendance challenge response is invalid.');
+    }
+    return result;
   }
 
   Future<void> reviewAttendance({
