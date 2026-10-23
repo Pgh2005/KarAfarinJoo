@@ -28,7 +28,9 @@ class AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: true,
       leading: leading,
+      leadingWidth: 64,
       actions: actions,
+      actionsPadding: const EdgeInsetsDirectional.only(end: 8),
       automaticallyImplyLeading: automaticallyImplyLeading,
       elevation: 0,
       iconTheme: const IconThemeData(
