@@ -93,15 +93,9 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    final totalLabel = find.textContaining('معادل از ۲۲');
-    await tester.scrollUntilVisible(
-      totalLabel,
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-
     expect(extracurricularField, findsOneWidget);
-    expect(totalLabel, findsOneWidget);
+    expect(find.textContaining('معادل از 22'), findsNothing);
+    expect(find.textContaining('جمع کل:'), findsNothing);
   });
 
   testWidgets('rejects rubric input above its component maximum', (
@@ -136,6 +130,16 @@ void main() {
 
     await tester.enterText(scoreField, '۴');
     expect(tester.widget<TextFormField>(scoreField).controller!.text, '۲.۵');
+    await tester.pump();
+
+    expect(
+      tester.widget<TextFormField>(scoreField).forceErrorText,
+      'حداکثر نمره 3 است؛ مقدار بیشتر پذیرفته نمی‌شود.',
+    );
+    expect(
+      find.text('حداکثر نمره 3 است؛ مقدار بیشتر پذیرفته نمی‌شود.'),
+      findsOneWidget,
+    );
   });
 }
 

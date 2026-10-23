@@ -52,9 +52,9 @@ void main() {
     expect(find.text('۱۲۳۴۵'), findsOneWidget);
     expect(find.text('ثبت نشده'), findsNothing);
     expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsNothing);
-    expect(find.text('—'), findsOneWidget);
-    expect(find.text('از ۲۲'), findsOneWidget);
-    expect(find.textContaining('از ۲۲ •'), findsNothing);
+    expect(find.text('—/22'), findsOneWidget);
+    expect(find.textContaining('از 22 •'), findsNothing);
+    expect(find.text('ناقص'), findsNothing);
 
     await tester.tap(find.text('دانشجوی آزمایشی'));
     await tester.pumpAndSettle();
@@ -98,9 +98,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('0.20'), findsOneWidget);
-    expect(find.text('از ۲۲'), findsOneWidget);
-    expect(find.textContaining('0.20 از ۲۲'), findsNothing);
+    expect(find.text('0.20/22'), findsOneWidget);
+    expect(find.textContaining('از 110'), findsNothing);
+    expect(find.text('ناقص'), findsNothing);
 
     router.dispose();
   });

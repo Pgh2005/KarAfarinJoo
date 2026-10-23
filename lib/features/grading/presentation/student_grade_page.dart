@@ -253,7 +253,7 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
         return 'برای ${component.label} یک عدد معتبر وارد کنید.';
       }
       if (score < 0 || score > component.maxScore) {
-        return 'نمرهٔ ${component.label} باید بین ۰ و ${_formatScore(component.maxScore)} باشد.';
+        return 'نمرهٔ ${component.label} باید بین 0 و ${_formatScore(component.maxScore)} باشد.';
       }
     }
 
@@ -402,8 +402,6 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
                       style: const TextStyle(color: AppTheme.error),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  _TotalCard(grade: currentGrade),
                   const SizedBox(height: 20),
                   SaveButton(
                     onSave: () => _save(savedGrade),
@@ -500,14 +498,14 @@ class _StudentHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${total.toStringAsFixed(1)} / ۱۱۰',
+                '${total.toStringAsFixed(1)} / 110',
                 style: const TextStyle(
                   color: AppTheme.primaryDark,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
-                '${(total / 5).toStringAsFixed(1)} / ۲۲',
+                '${(total / 5).toStringAsFixed(1)} / 22',
                 style: const TextStyle(
                   color: AppTheme.primary,
                   fontSize: 12,
@@ -645,7 +643,7 @@ class _ParticipationCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'مجموع جلسات: ${_formatScore(total)} از ۲۰ • مانده: ${_formatScore(remaining)}',
+              'مجموع جلسات: ${_formatScore(total)} از 20 • مانده: ${_formatScore(remaining)}',
               style: const TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 12,
@@ -655,7 +653,7 @@ class _ParticipationCard extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 6),
                 child: Text(
-                  'جمع نمره‌های جلسات از سقف ۲۰ بیشتر شده است.',
+                  'جمع نمره‌های جلسات از سقف 20 بیشتر شده است.',
                   style: TextStyle(color: AppTheme.error),
                 ),
               ),
@@ -742,7 +740,7 @@ class _ParticipationSessionRow extends StatelessWidget {
             title: 'نمرهٔ این جلسه',
             controller: draft.scoreController,
             validator: validator,
-            helperText: 'جمع تمام جلسات حداکثر ۲۰ نمره است',
+            helperText: 'جمع تمام جلسات حداکثر 20 نمره است',
             icon: Icons.grade_outlined,
             onChanged: onChanged,
           ),
@@ -788,45 +786,11 @@ class _ExtracurricularCard extends StatelessWidget {
   }
 }
 
-class _TotalCard extends StatelessWidget {
-  final StudentGrade grade;
-
-  const _TotalCard({required this.grade});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.accentLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.35)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'جمع کل: ${grade.total.toStringAsFixed(2)} از ۱۱۰',
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'معادل از ۲۲: ${grade.scoreOutOf22.toStringAsFixed(2)}'
-            '${grade.total > 110 ? ' • بیش از سقف پایه' : ''}'
-            '${grade.isComplete ? '' : ' • ${grade.enteredComponents} از ۹ بخش اصلی تکمیل شده'}',
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 final _scoreInputFormatter = FilteringTextInputFormatter.allow(
   RegExp(r'[0-9۰-۹٠-٩.,٫]'),
 );
 
-class _GradeScoreField extends StatelessWidget {
+class _GradeScoreField extends StatefulWidget {
   final String title;
   final TextEditingController controller;
   final String? Function(String? value) validator;
@@ -848,7 +812,20 @@ class _GradeScoreField extends StatelessWidget {
   });
 
   @override
+  State<_GradeScoreField> createState() => _GradeScoreFieldState();
+}
+
+class _GradeScoreFieldState extends State<_GradeScoreField> {
+  bool _limitExceeded = false;
+
+  void _showLimitWarning() {
+    if (_limitExceeded) return;
+    setState(() => _limitExceeded = true);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final maxScore = widget.maxScore;
     return Container(
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
@@ -863,19 +840,30 @@ class _GradeScoreField extends StatelessWidget {
         ],
       ),
       child: TextFormField(
-        controller: controller,
+        controller: widget.controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
           _scoreInputFormatter,
-          if (maxScore != null) _MaxScoreInputFormatter(maxScore!),
+          if (maxScore != null)
+            _MaxScoreInputFormatter(maxScore, onRejected: _showLimitWarning),
         ],
-        validator: validator,
-        onChanged: (_) => onChanged(),
-        decoration: FormBuilder.inputDecoration(
-          label: title,
-          prefixIcon: Icon(icon, size: 20),
-          borderRadius: 16,
-        ).copyWith(helperText: helperText, suffixText: suffixText),
+        validator: widget.validator,
+        forceErrorText: _limitExceeded && maxScore != null
+            ? 'حداکثر نمره ${_formatScore(maxScore)} است؛ مقدار بیشتر پذیرفته نمی‌شود.'
+            : null,
+        onChanged: (_) {
+          if (_limitExceeded) setState(() => _limitExceeded = false);
+          widget.onChanged();
+        },
+        decoration:
+            FormBuilder.inputDecoration(
+              label: widget.title,
+              prefixIcon: Icon(widget.icon, size: 20),
+              borderRadius: 16,
+            ).copyWith(
+              helperText: widget.helperText,
+              suffixText: widget.suffixText,
+            ),
       ),
     );
   }
@@ -883,8 +871,9 @@ class _GradeScoreField extends StatelessWidget {
 
 class _MaxScoreInputFormatter extends TextInputFormatter {
   final double maxScore;
+  final VoidCallback onRejected;
 
-  const _MaxScoreInputFormatter(this.maxScore);
+  const _MaxScoreInputFormatter(this.maxScore, {required this.onRejected});
 
   @override
   TextEditingValue formatEditUpdate(
@@ -892,7 +881,10 @@ class _MaxScoreInputFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final score = double.tryParse(_normalizeScoreInput(newValue.text));
-    if (score != null && score > maxScore) return oldValue;
+    if (score != null && score > maxScore) {
+      onRejected();
+      return oldValue;
+    }
     return newValue;
   }
 }
