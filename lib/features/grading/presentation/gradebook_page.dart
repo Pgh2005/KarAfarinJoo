@@ -298,13 +298,37 @@ class _StudentGradeCard extends StatelessWidget {
               member.studentNumber?.isNotEmpty == true
                   ? member.studentNumber!
                   : 'بدون کد دانشجویی',
-              if (hasScores)
-                '${grade!.total.toStringAsFixed(1)} از ۱۱۰ • '
-                    '${grade!.scoreOutOf22.toStringAsFixed(2)} از ۲۲',
+              if (hasScores) '${grade!.total.toStringAsFixed(1)} از ۱۱۰',
               if (isComplete) 'رتبه $rank',
               ?status,
             ].join('\n'),
             style: const TextStyle(color: AppTheme.textSecondary, height: 1.5),
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                grade == null || grade!.isEmpty
+                    ? '—'
+                    : grade!.scoreOutOf22.toStringAsFixed(2),
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Text(
+                'از ۲۲',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+              ),
+            ],
           ),
         ),
       ),

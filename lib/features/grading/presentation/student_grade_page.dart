@@ -90,30 +90,7 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
       value == value.roundToDouble() ? value.toInt().toString() : '$value';
 
   double? _parseInput(String value) {
-    final normalized = value
-        .replaceAll(',', '')
-        .replaceAll('٫', '.')
-        .replaceAll('۰', '0')
-        .replaceAll('۱', '1')
-        .replaceAll('۲', '2')
-        .replaceAll('۳', '3')
-        .replaceAll('۴', '4')
-        .replaceAll('۵', '5')
-        .replaceAll('۶', '6')
-        .replaceAll('۷', '7')
-        .replaceAll('۸', '8')
-        .replaceAll('۹', '9')
-        .replaceAll('٠', '0')
-        .replaceAll('١', '1')
-        .replaceAll('٢', '2')
-        .replaceAll('٣', '3')
-        .replaceAll('٤', '4')
-        .replaceAll('٥', '5')
-        .replaceAll('٦', '6')
-        .replaceAll('٧', '7')
-        .replaceAll('٨', '8')
-        .replaceAll('٩', '9')
-        .trim();
+    final normalized = _normalizeScoreInput(value);
     if (normalized.isEmpty) return null;
     return double.tryParse(normalized);
   }
@@ -606,6 +583,7 @@ class _GradeSectionCard extends StatelessWidget {
               title: component.label,
               controller: controllers[component.key]!,
               validator: (value) => validator(value, component.maxScore),
+              maxScore: component.maxScore,
               helperText: 'حداکثر ${_formatScore(component.maxScore)} نمره',
               suffixText: 'از ${_formatScore(component.maxScore)}',
               icon: Icons.grade_outlined,
@@ -852,6 +830,7 @@ class _GradeScoreField extends StatelessWidget {
   final String title;
   final TextEditingController controller;
   final String? Function(String? value) validator;
+  final double? maxScore;
   final String? helperText;
   final String? suffixText;
   final IconData icon;
@@ -863,6 +842,7 @@ class _GradeScoreField extends StatelessWidget {
     required this.validator,
     required this.icon,
     required this.onChanged,
+    this.maxScore,
     this.helperText,
     this.suffixText,
   });
@@ -885,7 +865,10 @@ class _GradeScoreField extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [_scoreInputFormatter],
+        inputFormatters: [
+          _scoreInputFormatter,
+          if (maxScore != null) _MaxScoreInputFormatter(maxScore!),
+        ],
         validator: validator,
         onChanged: (_) => onChanged(),
         decoration: FormBuilder.inputDecoration(
@@ -897,6 +880,47 @@ class _GradeScoreField extends StatelessWidget {
     );
   }
 }
+
+class _MaxScoreInputFormatter extends TextInputFormatter {
+  final double maxScore;
+
+  const _MaxScoreInputFormatter(this.maxScore);
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final score = double.tryParse(_normalizeScoreInput(newValue.text));
+    if (score != null && score > maxScore) return oldValue;
+    return newValue;
+  }
+}
+
+String _normalizeScoreInput(String value) => value
+    .replaceAll(',', '')
+    .replaceAll('٫', '.')
+    .replaceAll('۰', '0')
+    .replaceAll('۱', '1')
+    .replaceAll('۲', '2')
+    .replaceAll('۳', '3')
+    .replaceAll('۴', '4')
+    .replaceAll('۵', '5')
+    .replaceAll('۶', '6')
+    .replaceAll('۷', '7')
+    .replaceAll('۸', '8')
+    .replaceAll('۹', '9')
+    .replaceAll('٠', '0')
+    .replaceAll('١', '1')
+    .replaceAll('٢', '2')
+    .replaceAll('٣', '3')
+    .replaceAll('٤', '4')
+    .replaceAll('٥', '5')
+    .replaceAll('٦', '6')
+    .replaceAll('٧', '7')
+    .replaceAll('٨', '8')
+    .replaceAll('٩', '9')
+    .trim();
 
 String _formatScore(double value) =>
     value == value.roundToDouble() ? value.toInt().toString() : '$value';

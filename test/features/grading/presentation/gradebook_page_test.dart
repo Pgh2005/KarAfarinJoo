@@ -52,11 +52,56 @@ void main() {
     expect(find.text('۱۲۳۴۵'), findsOneWidget);
     expect(find.text('ثبت نشده'), findsNothing);
     expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsNothing);
+    expect(find.text('—'), findsOneWidget);
+    expect(find.text('از ۲۲'), findsOneWidget);
+    expect(find.textContaining('از ۲۲ •'), findsNothing);
 
     await tester.tap(find.text('دانشجوی آزمایشی'));
     await tester.pumpAndSettle();
 
     expect(find.text('صفحهٔ ثبت نمره'), findsOneWidget);
+    router.dispose();
+  });
+
+  testWidgets('shows the grade out of 22 separately from the student details', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/gradebook',
+      routes: [
+        GoRoute(
+          path: '/gradebook',
+          builder: (context, state) => GradebookPage(classModel: _classModel()),
+        ),
+      ],
+    );
+    final grade = StudentGrade(
+      classId: 'class-1',
+      studentId: 'student-1',
+      scores: {'slogan_life': 1},
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserIdProvider.overrideWith((ref) => 'teacher-1'),
+          isProfessorProvider.overrideWith((ref) => true),
+          classMembersProvider(
+            'class-1',
+          ).overrideWith((ref) async => [_member()]),
+          classGradesProvider(
+            'class-1',
+          ).overrideWith((ref) async => {'student-1': grade}),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0.20'), findsOneWidget);
+    expect(find.text('از ۲۲'), findsOneWidget);
+    expect(find.textContaining('0.20 از ۲۲'), findsNothing);
+
     router.dispose();
   });
 }

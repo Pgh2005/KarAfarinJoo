@@ -103,6 +103,40 @@ void main() {
     expect(extracurricularField, findsOneWidget);
     expect(totalLabel, findsOneWidget);
   });
+
+  testWidgets('rejects rubric input above its component maximum', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserIdProvider.overrideWith((ref) => 'teacher-1'),
+          isProfessorProvider.overrideWith((ref) => true),
+          studentGradeProvider((
+            classId: 'class-1',
+            studentId: 'student-1',
+          )).overrideWith((ref) async => null),
+        ],
+        child: MaterialApp(
+          home: StudentGradePage(classModel: _classModel(), member: _member()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final productsSection = find.text('محصولات (17 نمره)');
+    await tester.ensureVisible(productsSection);
+    await tester.tap(productsSection);
+    await tester.pumpAndSettle();
+
+    final scoreField = find.byType(TextFormField).first;
+    await tester.ensureVisible(scoreField);
+    await tester.enterText(scoreField, '۲.۵');
+    expect(tester.widget<TextFormField>(scoreField).controller!.text, '۲.۵');
+
+    await tester.enterText(scoreField, '۴');
+    expect(tester.widget<TextFormField>(scoreField).controller!.text, '۲.۵');
+  });
 }
 
 ClassModel _classModel() => ClassModel(
