@@ -44,6 +44,16 @@ void main() {
       ),
     );
     expect(expandedSection.backgroundColor, Colors.white);
+    expect(
+      tester.widget<Text>(sloganTile).style?.color,
+      const Color(0xFF0D47A1),
+    );
+    final sectionCard = tester.widget<Card>(
+      find.ancestor(of: sloganTile, matching: find.byType(Card)),
+    );
+    final cardShape = sectionCard.shape! as RoundedRectangleBorder;
+    final cardSide = cardShape.side;
+    expect(cardSide.color, const Color(0xFF1A73E8).withValues(alpha: 0.45));
 
     final sessionButton = find.text('افزودن تاریخ جلسه');
     await tester.scrollUntilVisible(
