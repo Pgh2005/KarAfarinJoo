@@ -1,0 +1,92 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:karafarini/core/providers/session_providers.dart';
+import 'package:karafarini/features/classes/models/class_member_model.dart';
+import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/features/classes/providers/classes_provider.dart';
+import 'package:karafarini/features/grading/models/student_grade.dart';
+import 'package:karafarini/features/grading/presentation/gradebook_page.dart';
+import 'package:karafarini/features/grading/providers/gradebook_provider.dart';
+import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
+
+void main() {
+  testWidgets('shows the class member profile style and opens their profile', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/gradebook',
+      routes: [
+        GoRoute(
+          path: '/gradebook',
+          builder: (context, state) => GradebookPage(classModel: _classModel()),
+        ),
+        GoRoute(
+          path: '/student-profile',
+          name: 'student-profile',
+          builder: (context, state) => Scaffold(
+            body: Text(
+              'profile:${state.uri.queryParameters['classId']}:'
+              '${state.uri.queryParameters['studentId']}',
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/student-grade',
+          name: 'student-grade',
+          builder: (context, state) => const Scaffold(body: Text('ثبت نمره')),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserIdProvider.overrideWith((ref) => 'teacher-1'),
+          isProfessorProvider.overrideWith((ref) => true),
+          classMembersProvider(
+            'class-1',
+          ).overrideWith((ref) async => [_member()]),
+          classGradesProvider(
+            'class-1',
+          ).overrideWith((ref) async => <String, StudentGrade>{}),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('دانشجوی آزمایشی'), findsOneWidget);
+    expect(find.text('۱۲۳۴۵\nثبت نشده'), findsOneWidget);
+    expect(find.byTooltip('مشاهده پروفایل دانشجو'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('مشاهده پروفایل دانشجو'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('profile:class-1:student-1'), findsOneWidget);
+    router.dispose();
+  });
+}
+
+ClassModel _classModel() => ClassModel(
+  id: 'class-1',
+  teacherId: 'teacher-1',
+  title: 'کلاس آزمایشی',
+  courseCode: 'TEST-1',
+  semester: 'ترم جاری',
+  joinCode: 'JOIN-1',
+  maxStudents: 20,
+  isActive: true,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
+ClassMemberModel _member() => ClassMemberModel(
+  id: 'member-1',
+  classId: 'class-1',
+  studentId: 'student-1',
+  joinedAt: DateTime(2026),
+  studentName: 'دانشجوی آزمایشی',
+  studentNumber: '۱۲۳۴۵',
+);

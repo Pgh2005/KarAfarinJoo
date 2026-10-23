@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:karafarini/core/providers/session_providers.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
 import 'package:karafarini/core/utils/app_date_formatter.dart';
@@ -8,8 +9,10 @@ import 'package:karafarini/core/utils/date_picker/persian_date_picker_sheet.dart
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/features/forms/widgets/form_field_builder.dart';
 import 'package:karafarini/features/forms/widgets/save_button.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
+import 'package:karafarini/features/profile/presentation/widgets/profile_avatar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/student_grade.dart';
@@ -376,6 +379,14 @@ class _StudentGradePageState extends ConsumerState<StudentGradePage> {
                   _StudentHeader(
                     name: widget.member.studentName ?? 'دانشجوی بدون نام',
                     studentNumber: widget.member.studentNumber,
+                    avatarUrl: widget.member.avatarUrl,
+                    onProfileTap: () => context.pushNamed(
+                      'student-profile',
+                      queryParameters: {
+                        'classId': widget.member.classId,
+                        'studentId': widget.member.studentId,
+                      },
+                    ),
                     total: currentGrade.total,
                   ),
                   const SizedBox(height: 16),
@@ -451,11 +462,15 @@ class _ParticipationDraft {
 class _StudentHeader extends StatelessWidget {
   final String name;
   final String? studentNumber;
+  final String? avatarUrl;
+  final VoidCallback onProfileTap;
   final double total;
 
   const _StudentHeader({
     required this.name,
     required this.studentNumber,
+    required this.avatarUrl,
+    required this.onProfileTap,
     required this.total,
   });
 
@@ -469,10 +484,33 @@ class _StudentHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            backgroundColor: Colors.white,
-            foregroundColor: AppTheme.primary,
-            child: Icon(Icons.person_outline),
+          Container(
+            width: 52,
+            height: 52,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppTheme.primary.withValues(alpha: 0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withValues(alpha: 0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: ProfileAvatar(
+              fullName: name,
+              avatarUrl: avatarUrl,
+              resolvedImageUrl: avatarUrl,
+              radius: 24,
+              backgroundColor: AppTheme.avatarBg,
+              foregroundColor: AppTheme.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -491,12 +529,30 @@ class _StudentHeader extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            '${total.toStringAsFixed(1)} / ۱۱۰',
-            style: const TextStyle(
-              color: AppTheme.primaryDark,
-              fontWeight: FontWeight.w800,
-            ),
+          IconButton(
+            tooltip: 'مشاهده پروفایل دانشجو',
+            onPressed: onProfileTap,
+            icon: const Icon(Icons.person_outline, color: AppTheme.primary),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${total.toStringAsFixed(1)} / ۱۱۰',
+                style: const TextStyle(
+                  color: AppTheme.primaryDark,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Text(
+                '${(total / 5).toStringAsFixed(1)} / ۲۲',
+                style: const TextStyle(
+                  color: AppTheme.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -529,17 +585,21 @@ class _GradeSectionCard extends StatelessWidget {
     final sectionScore = currentGrade.scoreForSection(section);
 
     return Card(
-      color: AppTheme.cardBg,
+      color: AppTheme.primaryLight,
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppTheme.border),
+        side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.16)),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        collapsedBackgroundColor: AppTheme.primaryLight,
+        backgroundColor: AppTheme.primaryLight,
+        iconColor: AppTheme.primary,
+        collapsedIconColor: AppTheme.primary,
         title: Text(
           '${section.title} (${_formatScore(section.maxScore)} نمره)',
           style: const TextStyle(
@@ -557,22 +617,14 @@ class _GradeSectionCard extends StatelessWidget {
         ),
         children: [
           for (final component in section.components)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: TextFormField(
-                controller: controllers[component.key],
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [_scoreInputFormatter],
-                validator: (value) => validator(value, component.maxScore),
-                onChanged: (_) => onChanged(),
-                decoration: InputDecoration(
-                  labelText: component.label,
-                  helperText: 'حداکثر ${_formatScore(component.maxScore)} نمره',
-                  suffixText: 'از ${_formatScore(component.maxScore)}',
-                ),
-              ),
+            _GradeScoreField(
+              title: component.label,
+              controller: controllers[component.key]!,
+              validator: (value) => validator(value, component.maxScore),
+              helperText: 'حداکثر ${_formatScore(component.maxScore)} نمره',
+              suffixText: 'از ${_formatScore(component.maxScore)}',
+              icon: Icons.grade_outlined,
+              onChanged: onChanged,
             ),
         ],
       ),
@@ -723,16 +775,13 @@ class _ParticipationSessionRow extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          TextFormField(
+          _GradeScoreField(
+            title: 'نمرهٔ این جلسه',
             controller: draft.scoreController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [_scoreInputFormatter],
             validator: validator,
-            onChanged: (_) => onChanged(),
-            decoration: const InputDecoration(
-              labelText: 'نمرهٔ این جلسه',
-              helperText: 'جمع تمام جلسات حداکثر ۲۰ نمره است',
-            ),
+            helperText: 'جمع تمام جلسات حداکثر ۲۰ نمره است',
+            icon: Icons.grade_outlined,
+            onChanged: onChanged,
           ),
         ],
       ),
@@ -763,16 +812,13 @@ class _ExtracurricularCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: TextFormField(
+        child: _GradeScoreField(
+          title: 'فوق‌برنامه',
           controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [_scoreInputFormatter],
           validator: validator,
-          onChanged: (_) => onChanged(),
-          decoration: const InputDecoration(
-            labelText: 'فوق‌برنامه',
-            helperText: 'بدون سقف؛ به جمع کل اضافه می‌شود.',
-          ),
+          helperText: 'بدون سقف؛ به جمع کل اضافه می‌شود.',
+          icon: Icons.stars_outlined,
+          onChanged: onChanged,
         ),
       ),
     );
@@ -816,6 +862,56 @@ class _TotalCard extends StatelessWidget {
 final _scoreInputFormatter = FilteringTextInputFormatter.allow(
   RegExp(r'[0-9۰-۹٠-٩.,٫]'),
 );
+
+class _GradeScoreField extends StatelessWidget {
+  final String title;
+  final TextEditingController controller;
+  final String? Function(String? value) validator;
+  final String? helperText;
+  final String? suffixText;
+  final IconData icon;
+  final VoidCallback onChanged;
+
+  const _GradeScoreField({
+    required this.title,
+    required this.controller,
+    required this.validator,
+    required this.icon,
+    required this.onChanged,
+    this.helperText,
+    this.suffixText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.cardShadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [_scoreInputFormatter],
+        validator: validator,
+        onChanged: (_) => onChanged(),
+        decoration: FormBuilder.inputDecoration(
+          label: title,
+          prefixIcon: Icon(icon, size: 20),
+          borderRadius: 16,
+        ).copyWith(helperText: helperText, suffixText: suffixText),
+      ),
+    );
+  }
+}
 
 String _formatScore(double value) =>
     value == value.roundToDouble() ? value.toInt().toString() : '$value';

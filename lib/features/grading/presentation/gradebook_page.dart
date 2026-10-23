@@ -8,6 +8,7 @@ import 'package:karafarini/features/classes/models/class_member_model.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
 import 'package:karafarini/features/classes/providers/classes_provider.dart';
 import 'package:karafarini/features/profile/providers/current_session_profile_provider.dart';
+import 'package:karafarini/features/profile/presentation/widgets/profile_avatar.dart';
 
 import '../models/student_grade.dart';
 import '../providers/gradebook_provider.dart';
@@ -159,6 +160,13 @@ class _GradebookPageState extends ConsumerState<GradebookPage> {
                     member: member,
                   ),
                 ),
+                onProfileTap: () => context.pushNamed(
+                  'student-profile',
+                  queryParameters: {
+                    'classId': member.classId,
+                    'studentId': member.studentId,
+                  },
+                ),
               );
             }),
         ],
@@ -230,12 +238,14 @@ class _StudentGradeCard extends StatelessWidget {
   final StudentGrade? grade;
   final int? rank;
   final VoidCallback onTap;
+  final VoidCallback onProfileTap;
 
   const _StudentGradeCard({
     required this.member,
     required this.grade,
     required this.rank,
     required this.onTap,
+    required this.onProfileTap,
   });
 
   @override
@@ -247,30 +257,44 @@ class _StudentGradeCard extends StatelessWidget {
         : hasScores
         ? 'ناقص'
         : 'ثبت نشده';
-    final statusColor = isComplete
-        ? AppTheme.success
-        : hasScores
-        ? AppTheme.warning
-        : AppTheme.textHint;
 
     return Card(
-      color: AppTheme.cardBg,
+      color: AppTheme.primaryLight,
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppTheme.border),
+        side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.1)),
       ),
       child: ListTile(
         minVerticalPadding: 12,
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryLight,
-          foregroundColor: AppTheme.primaryDark,
-          child: Text(
-            member.studentName?.trim().isNotEmpty == true
-                ? member.studentName!.trim().characters.first
-                : '؟',
+        leading: Container(
+          width: 52,
+          height: 52,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppTheme.primary.withValues(alpha: 0.2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primary.withValues(alpha: 0.12),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: ProfileAvatar(
+            fullName: member.studentName ?? 'کاربر بدون نام',
+            avatarUrl: member.avatarUrl,
+            resolvedImageUrl: member.avatarUrl,
+            radius: 24,
+            backgroundColor: AppTheme.avatarBg,
+            foregroundColor: AppTheme.primary,
           ),
         ),
         title: Text(
@@ -284,31 +308,22 @@ class _StudentGradeCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 5),
           child: Text(
             [
-              if (member.studentNumber?.isNotEmpty == true)
-                member.studentNumber!,
+              member.studentNumber?.isNotEmpty == true
+                  ? member.studentNumber!
+                  : 'بدون کد دانشجویی',
               if (hasScores)
                 '${grade!.total.toStringAsFixed(1)} از ۱۱۰ • '
-                    '${grade!.scoreOutOf22.toStringAsFixed(2)} از ۲۲'
-              else
-                status,
-            ].join(' • '),
-            style: const TextStyle(color: AppTheme.textSecondary),
+                    '${grade!.scoreOutOf22.toStringAsFixed(2)} از ۲۲',
+              if (isComplete) 'رتبه $rank',
+              status,
+            ].join('\n'),
+            style: const TextStyle(color: AppTheme.textSecondary, height: 1.5),
           ),
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (isComplete)
-              Text(
-                'رتبه $rank',
-                style: const TextStyle(
-                  color: AppTheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            Text(status, style: TextStyle(color: statusColor, fontSize: 12)),
-          ],
+        trailing: IconButton(
+          tooltip: 'مشاهده پروفایل دانشجو',
+          onPressed: onProfileTap,
+          icon: const Icon(Icons.person_outline, color: AppTheme.primary),
         ),
       ),
     );

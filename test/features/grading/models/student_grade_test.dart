@@ -13,6 +13,12 @@ void main() {
       expect(StudentGrade.components, hasLength(18));
       expect(fixedMax, 90);
       expect(fixedMax + StudentGrade.participationMaxScore, 110);
+      expect(
+        StudentGrade.sections.map((section) => section.title).toSet(),
+        hasLength(StudentGrade.sections.length),
+      );
+      expect(StudentGrade.sections[4].title, 'طرح کسب‌وکار');
+      expect(StudentGrade.sections[7].title, 'ارزیابی کاسب و ارتباط');
     });
 
     test('calculates the score out of 22 by dividing the total by five', () {

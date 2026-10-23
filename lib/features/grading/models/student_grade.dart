@@ -96,7 +96,7 @@ class StudentGrade {
     ),
     GradeSection(
       key: 'business_17',
-      title: 'کسب‌وکار (۱۷ نمره)',
+      title: 'طرح کسب‌وکار',
       legacyKey: 'business_17',
       components: [
         GradeComponent(key: 'business_17_table', label: 'جدول', maxScore: 3),
@@ -129,7 +129,7 @@ class StudentGrade {
     ),
     GradeSection(
       key: 'business_6',
-      title: 'کسب‌وکار (۶ نمره)',
+      title: 'ارزیابی کاسب و ارتباط',
       legacyKey: 'business_6',
       components: [
         GradeComponent(key: 'business_6_trader', label: 'کاسب', maxScore: 3),
