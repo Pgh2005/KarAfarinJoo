@@ -10,12 +10,27 @@ void main() {
       'starts_at': '2026-10-23T09:00:00',
       'ends_at': '2026-10-23T10:30:00',
       'request_open': true,
+      'session_ended': false,
     });
 
     expect(session.id, 'session-1');
     expect(session.startsAt, DateTime(2026, 10, 23, 9));
     expect(session.endsAt, DateTime(2026, 10, 23, 10, 30));
     expect(session.isRequestOpen, isTrue);
+    expect(session.isEnded, isFalse);
+  });
+
+  test('parses ended attendance sessions', () {
+    final session = AttendanceSession.fromMap({
+      'id': 'session-2',
+      'class_id': 'class-1',
+      'starts_at': '2026-10-23T09:00:00',
+      'ends_at': '2026-10-23T10:30:00',
+      'request_open': false,
+      'session_ended': true,
+    });
+
+    expect(session.isEnded, isTrue);
   });
 
   test('parses an attendance decision and review timestamp', () {

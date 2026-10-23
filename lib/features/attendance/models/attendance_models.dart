@@ -41,6 +41,7 @@ class AttendanceSession {
   final DateTime startsAt;
   final DateTime endsAt;
   final bool isRequestOpen;
+  final bool isEnded;
 
   const AttendanceSession({
     required this.id,
@@ -48,6 +49,7 @@ class AttendanceSession {
     required this.startsAt,
     required this.endsAt,
     required this.isRequestOpen,
+    required this.isEnded,
   });
 
   factory AttendanceSession.fromMap(Map<String, dynamic> map) =>
@@ -57,6 +59,7 @@ class AttendanceSession {
         startsAt: DateTime.parse(map['starts_at'] as String),
         endsAt: DateTime.parse(map['ends_at'] as String),
         isRequestOpen: map['request_open'] as bool? ?? false,
+        isEnded: map['session_ended'] as bool? ?? false,
       );
 }
 
@@ -97,12 +100,12 @@ class AttendanceOverview {
   final List<AttendanceSchedule> schedules;
   final AttendanceSession? todaySession;
   final List<AttendanceRecord> records;
-  final double studentAttendanceScore;
+  final List<DateTime> studentAttendanceDates;
 
   const AttendanceOverview({
     required this.schedules,
     required this.todaySession,
     required this.records,
-    required this.studentAttendanceScore,
+    required this.studentAttendanceDates,
   });
 }

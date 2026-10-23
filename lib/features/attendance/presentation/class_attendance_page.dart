@@ -82,6 +82,61 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
     );
   }
 
+  Future<void> _setAttendance({
+    required AttendanceSession session,
+    required ClassMemberModel member,
+    required String status,
+  }) async {
+    await _perform(
+      () => ref
+          .read(attendanceServiceProvider)
+          .setAttendance(
+            sessionId: session.id,
+            studentId: member.studentId,
+            status: status,
+          ),
+    );
+  }
+
+  Future<void> _toggleScheduleActive(AttendanceSchedule schedule) async {
+    final shouldContinue = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          schedule.isActive ? 'حذف روز از برنامه' : 'بازگرداندن روز به برنامه',
+        ),
+        content: Text(
+          schedule.isActive
+              ? 'این روز از برنامهٔ هفتگی آینده غیرفعال می‌شود. اطلاعات جلسات گذشته حذف نخواهد شد.'
+              : 'این روز دوباره در برنامهٔ هفتگی فعال می‌شود.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(schedule.isActive ? 'غیرفعال‌کردن' : 'فعال‌کردن'),
+          ),
+        ],
+      ),
+    );
+    if (shouldContinue != true || !mounted) return;
+
+    await _perform(
+      () => ref
+          .read(attendanceServiceProvider)
+          .saveSchedule(
+            classId: schedule.classId,
+            weekday: schedule.weekday,
+            startsAt: schedule.startsAt,
+            endsAt: schedule.endsAt,
+            isActive: !schedule.isActive,
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isProfessor = ref.watch(isProfessorProvider);
@@ -134,6 +189,7 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
                   onEdit: isProfessor
                       ? (schedule) => _editSchedule(schedule: schedule)
                       : null,
+                  onToggleActive: isProfessor ? _toggleScheduleActive : null,
                 ),
                 const SizedBox(height: 16),
                 _TodaySessionCard(
@@ -141,7 +197,8 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
                   isProfessor: isProfessor,
                   records: overview.records,
                   studentId: userId,
-                  studentAttendanceScore: overview.studentAttendanceScore,
+                  studentAttendanceScore: overview.studentAttendanceDates.length
+                      .toDouble(),
                   saving: _isSaving,
                   onRequest: overview.todaySession == null
                       ? null
@@ -174,9 +231,16 @@ class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
                     data: (members) => _TeacherAttendanceList(
                       members: members,
                       records: overview.records,
-                      hasSession: overview.todaySession != null,
+                      session: overview.todaySession,
                       saving: _isSaving,
                       onReview: _review,
+                      onSetAttendance: overview.todaySession == null
+                          ? null
+                          : (member, status) => _setAttendance(
+                              session: overview.todaySession!,
+                              member: member,
+                              status: status,
+                            ),
                     ),
                   ),
                 ],
@@ -228,12 +292,14 @@ class _ScheduleSection extends StatelessWidget {
   final bool canEdit;
   final VoidCallback? onAdd;
   final ValueChanged<AttendanceSchedule>? onEdit;
+  final ValueChanged<AttendanceSchedule>? onToggleActive;
 
   const _ScheduleSection({
     required this.schedules,
     required this.canEdit,
     required this.onAdd,
     required this.onEdit,
+    required this.onToggleActive,
   });
 
   @override
@@ -265,10 +331,26 @@ class _ScheduleSection extends StatelessWidget {
                   '${schedule.isActive ? '' : ' • غیرفعال'}',
                 ),
                 trailing: canEdit
-                    ? IconButton(
-                        tooltip: 'ویرایش ${_weekdayName(schedule.weekday)}',
-                        onPressed: () => onEdit!(schedule),
-                        icon: const Icon(Icons.edit_outlined),
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'ویرایش ${_weekdayName(schedule.weekday)}',
+                            onPressed: () => onEdit!(schedule),
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            tooltip: schedule.isActive
+                                ? 'حذف از برنامهٔ هفتگی'
+                                : 'بازگرداندن به برنامهٔ هفتگی',
+                            onPressed: () => onToggleActive!(schedule),
+                            icon: Icon(
+                              schedule.isActive
+                                  ? Icons.event_busy_outlined
+                                  : Icons.restore_outlined,
+                            ),
+                          ),
+                        ],
                       )
                     : null,
               ),
@@ -383,16 +465,18 @@ class _TodaySessionCard extends StatelessWidget {
 class _TeacherAttendanceList extends StatelessWidget {
   final List<ClassMemberModel> members;
   final List<AttendanceRecord> records;
-  final bool hasSession;
+  final AttendanceSession? session;
   final bool saving;
   final Future<void> Function(AttendanceRecord, String) onReview;
+  final Future<void> Function(ClassMemberModel, String)? onSetAttendance;
 
   const _TeacherAttendanceList({
     required this.members,
     required this.records,
-    required this.hasSession,
+    required this.session,
     required this.saving,
     required this.onReview,
+    required this.onSetAttendance,
   });
 
   @override
@@ -400,20 +484,32 @@ class _TeacherAttendanceList extends StatelessWidget {
     final recordByStudent = {
       for (final record in records) record.studentId: record,
     };
-    final pending = records
-        .where((record) => record.status == 'pending')
-        .length;
-    final approved = records
-        .where((record) => record.status == 'approved')
-        .length;
-
+    final pendingMembers = members
+        .where(
+          (member) => recordByStudent[member.studentId]?.status == 'pending',
+        )
+        .toList();
+    final approvedMembers = members
+        .where(
+          (member) => recordByStudent[member.studentId]?.status == 'approved',
+        )
+        .toList();
+    final unresolvedMembers = members
+        .where(
+          (member) =>
+              recordByStudent[member.studentId]?.status != 'pending' &&
+              recordByStudent[member.studentId]?.status != 'approved',
+        )
+        .toList();
     return _AttendanceCard(
       title: 'وضعیت دانشجویان',
       icon: Icons.people_alt_outlined,
-      trailing: hasSession
-          ? Text('$approved تأیید • $pending در انتظار')
+      trailing: session != null
+          ? Text(
+              '${approvedMembers.length} تأیید • ${pendingMembers.length} درخواست',
+            )
           : null,
-      child: !hasSession
+      child: session == null
           ? const Text(
               'پس از تعریف برنامه برای امروز، فهرست حضور این جلسه نمایش داده می‌شود.',
               style: TextStyle(color: AppTheme.textSecondary),
@@ -425,30 +521,129 @@ class _TeacherAttendanceList extends StatelessWidget {
             )
           : Column(
               children: [
-                for (final member in members)
-                  _StudentAttendanceTile(
-                    member: member,
-                    record: recordByStudent[member.studentId],
-                    saving: saving,
-                    onReview: onReview,
-                  ),
+                _AttendanceGroup(
+                  title: 'درخواست‌های در انتظار',
+                  count: pendingMembers.length,
+                  icon: Icons.mark_email_unread_outlined,
+                  initiallyExpanded: pendingMembers.isNotEmpty,
+                  children: [
+                    for (final member in pendingMembers)
+                      _StudentAttendanceTile(
+                        member: member,
+                        record: recordByStudent[member.studentId],
+                        session: session!,
+                        saving: saving,
+                        onReview: onReview,
+                        onSetAttendance: onSetAttendance,
+                      ),
+                  ],
+                ),
+                _AttendanceGroup(
+                  title: 'حضورهای تأییدشده',
+                  count: approvedMembers.length,
+                  icon: Icons.verified_outlined,
+                  children: [
+                    for (final member in approvedMembers)
+                      _StudentAttendanceTile(
+                        member: member,
+                        record: recordByStudent[member.studentId],
+                        session: session!,
+                        saving: saving,
+                        onReview: onReview,
+                        onSetAttendance: onSetAttendance,
+                      ),
+                  ],
+                ),
+                _AttendanceGroup(
+                  title: session!.isEnded
+                      ? 'غایب / بدون درخواست'
+                      : 'بدون درخواست',
+                  count: unresolvedMembers.length,
+                  icon: session!.isEnded
+                      ? Icons.person_off_outlined
+                      : Icons.person_outline,
+                  children: [
+                    for (final member in unresolvedMembers)
+                      _StudentAttendanceTile(
+                        member: member,
+                        record: recordByStudent[member.studentId],
+                        session: session!,
+                        saving: saving,
+                        onReview: onReview,
+                        onSetAttendance: onSetAttendance,
+                      ),
+                  ],
+                ),
               ],
             ),
     );
   }
 }
 
+class _AttendanceGroup extends StatelessWidget {
+  final String title;
+  final int count;
+  final IconData icon;
+  final bool initiallyExpanded;
+  final List<Widget> children;
+
+  const _AttendanceGroup({
+    required this.title,
+    required this.count,
+    required this.icon,
+    required this.children,
+    this.initiallyExpanded = false,
+  });
+
+  @override
+  Widget build(BuildContext context) => ExpansionTile(
+    tilePadding: EdgeInsets.zero,
+    childrenPadding: EdgeInsets.zero,
+    initiallyExpanded: initiallyExpanded,
+    leading: Icon(icon, color: AppTheme.primary),
+    title: Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        Text('$count', style: const TextStyle(color: AppTheme.textSecondary)),
+      ],
+    ),
+    children: children.isEmpty
+        ? [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'موردی وجود ندارد.',
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+              ),
+            ),
+          ]
+        : children,
+  );
+}
+
 class _StudentAttendanceTile extends StatelessWidget {
   final ClassMemberModel member;
   final AttendanceRecord? record;
+  final AttendanceSession session;
   final bool saving;
   final Future<void> Function(AttendanceRecord, String) onReview;
+  final Future<void> Function(ClassMemberModel, String)? onSetAttendance;
 
   const _StudentAttendanceTile({
     required this.member,
     required this.record,
+    required this.session,
     required this.saving,
     required this.onReview,
+    required this.onSetAttendance,
   });
 
   @override
@@ -500,13 +695,13 @@ class _StudentAttendanceTile extends StatelessWidget {
                 _StatusLabel(status: record!.status),
             ],
           ),
-          if (record != null) ...[
+          if (record?.status == 'pending') ...[
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: saving || record!.status == 'approved'
+                    onPressed: saving
                         ? null
                         : () => onReview(record!, 'approved'),
                     child: const Text('تأیید • ۱ امتیاز'),
@@ -515,12 +710,50 @@ class _StudentAttendanceTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextButton(
-                    onPressed: saving || record!.status == 'rejected'
+                    onPressed: saving
                         ? null
                         : () => onReview(record!, 'rejected'),
                     child: const Text('رد درخواست'),
                   ),
                 ),
+              ],
+            ),
+          ] else if (record == null ||
+              record!.status == 'rejected' ||
+              record!.status == 'absent' ||
+              record!.status == 'approved') ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                if (record?.status != 'approved')
+                  OutlinedButton.icon(
+                    onPressed: saving
+                        ? null
+                        : record == null
+                        ? () => onSetAttendance?.call(member, 'approved')
+                        : () => onReview(record!, 'approved'),
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('ثبت حضور • ۱ امتیاز'),
+                  ),
+                if (session.isEnded && record?.status != 'absent')
+                  TextButton.icon(
+                    onPressed: saving
+                        ? null
+                        : record == null
+                        ? () => onSetAttendance?.call(member, 'absent')
+                        : () => onReview(record!, 'absent'),
+                    icon: const Icon(Icons.person_off_outlined),
+                    label: const Text('ثبت غیبت'),
+                  ),
+                if (!session.isEnded && record?.status == 'approved')
+                  TextButton(
+                    onPressed: saving
+                        ? null
+                        : () => onReview(record!, 'rejected'),
+                    child: const Text('برگرداندن تأیید'),
+                  ),
               ],
             ),
           ],
@@ -646,6 +879,7 @@ class _StatusLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
       'approved' => ('تأیید شده', AppTheme.success),
+      'absent' => ('غایب', AppTheme.error),
       'rejected' => ('رد شده', AppTheme.error),
       _ => ('در انتظار بررسی', AppTheme.warning),
     };

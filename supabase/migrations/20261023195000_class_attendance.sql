@@ -33,7 +33,7 @@ create table public.class_attendance_records (
     on delete cascade,
   student_id text not null,
   status text not null default 'pending'
-    check (status in ('pending', 'approved', 'rejected')),
+    check (status in ('pending', 'approved', 'rejected', 'absent')),
   requested_at timestamptz not null default now(),
   reviewed_by text,
   reviewed_at timestamptz,
@@ -433,6 +433,7 @@ begin
     'session_date', attendance_session.session_date,
     'starts_at', attendance_session.starts_at,
     'ends_at', attendance_session.ends_at,
+    'session_ended', local_now >= attendance_session.ends_at,
     'request_open',
       local_now >= attendance_session.starts_at - interval '15 minutes'
       and local_now <= attendance_session.ends_at
@@ -519,8 +520,13 @@ set search_path = pg_catalog, public, auth
 as $function$
 declare
   attendance_record public.class_attendance_records%rowtype;
+  attendance_session public.class_attendance_sessions%rowtype;
+  local_now timestamp without time zone :=
+    timezone('Asia/Tehran', statement_timestamp());
 begin
-  if auth.uid() is null or p_status not in ('approved', 'rejected') then
+  if auth.uid() is null
+    or p_status is null
+    or p_status not in ('approved', 'rejected', 'absent') then
     raise exception 'A valid attendance decision is required.'
       using errcode = '22023';
   end if;
@@ -551,6 +557,18 @@ begin
     )
   );
 
+  if p_status = 'absent' then
+    select *
+    into attendance_session
+    from public.class_attendance_sessions
+    where id = attendance_record.session_id;
+
+    if local_now < attendance_session.ends_at then
+      raise exception 'Absence can only be recorded after class ends.'
+        using errcode = '22023';
+    end if;
+  end if;
+
   update public.class_attendance_records
   set
     status = p_status,
@@ -560,14 +578,98 @@ begin
 end;
 $function$;
 
-create or replace function public.get_my_class_attendance_score(p_class_id text)
-returns numeric
+create or replace function public.set_class_attendance(
+  p_session_id uuid,
+  p_student_id text,
+  p_status text
+)
+returns void
 language plpgsql
 security definer
 set search_path = pg_catalog, public, auth
 as $function$
 declare
-  attendance_points integer;
+  attendance_session public.class_attendance_sessions%rowtype;
+  local_now timestamp without time zone :=
+    timezone('Asia/Tehran', statement_timestamp());
+begin
+  if auth.uid() is null
+    or p_status is null
+    or p_status not in ('approved', 'absent') then
+    raise exception 'A valid attendance status is required.'
+      using errcode = '22023';
+  end if;
+
+  select *
+  into attendance_session
+  from public.class_attendance_sessions
+  where id = p_session_id
+  for update;
+
+  if not found or not exists (
+    select 1
+    from public.classes as class
+    join public.profiles as professor
+      on professor.id::text = auth.uid()::text
+      and professor.role = 'professor'
+    where class.id::text = attendance_session.class_id
+      and class.teacher_id::text = auth.uid()::text
+  ) then
+    raise exception 'Only the professor who owns this class can edit attendance.'
+      using errcode = '42501';
+  end if;
+
+  if not exists (
+    select 1
+    from public.class_members as member
+    where member.class_id::text = attendance_session.class_id
+      and member.student_id::text = p_student_id
+  ) then
+    raise exception 'Only class members can receive an attendance record.'
+      using errcode = 'P0002';
+  end if;
+
+  if p_status = 'absent' and local_now < attendance_session.ends_at then
+    raise exception 'Absence can only be recorded after class ends.'
+      using errcode = '22023';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(attendance_session.class_id || ':' || p_student_id, 0)
+  );
+
+  insert into public.class_attendance_records (
+    class_id,
+    session_id,
+    student_id,
+    status,
+    reviewed_by,
+    reviewed_at
+  )
+  values (
+    attendance_session.class_id,
+    attendance_session.id,
+    p_student_id,
+    p_status,
+    auth.uid()::text,
+    now()
+  )
+  on conflict (session_id, student_id)
+  do update set
+    status = excluded.status,
+    reviewed_by = excluded.reviewed_by,
+    reviewed_at = excluded.reviewed_at;
+end;
+$function$;
+
+create or replace function public.get_my_class_attendance_score(p_class_id text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth
+as $function$
+declare
+  attendance_dates date[];
 begin
   if auth.uid() is null then
     raise exception 'Authentication is required.'
@@ -589,19 +691,19 @@ begin
       where class.id::text = p_class_id
         and class.teacher_id::text = auth.uid()::text
     ) then
-      return 0;
+      return '[]'::jsonb;
     end if;
     raise exception 'Only a class member or its professor may read attendance points.'
       using errcode = '42501';
   end if;
 
-  select cardinality(grade.attendance_dates)
-  into attendance_points
+  select grade.attendance_dates
+  into attendance_dates
   from public.class_student_grades as grade
   where grade.class_id = p_class_id
     and grade.student_id = auth.uid()::text;
 
-  return coalesce(attendance_points, 0);
+  return to_jsonb(coalesce(attendance_dates, '{}'::date[]));
 end;
 $function$;
 
@@ -618,6 +720,18 @@ begin
   perform pg_advisory_xact_lock(
     hashtextextended(new.class_id || ':' || new.student_id, 0)
   );
+
+  if tg_op = 'INSERT' and new.status <> 'approved' then
+    return new;
+  end if;
+
+  if tg_op = 'UPDATE'
+    and (
+      new.status is not distinct from old.status
+      or (new.status <> 'approved' and old.status <> 'approved')
+    ) then
+    return new;
+  end if;
 
   select coalesce(
     array_agg(attendance_session.session_date order by attendance_session.session_date),
@@ -650,9 +764,8 @@ end;
 $function$;
 
 create trigger sync_class_attendance_score_after_review
-after update of status on public.class_attendance_records
+after insert or update of status on public.class_attendance_records
 for each row
-when (new.status is distinct from old.status)
 execute function public.sync_class_attendance_score();
 
 create or replace function public.cleanup_class_attendance_before_delete()
@@ -678,6 +791,8 @@ revoke all on function public.request_class_attendance(uuid)
   from public, anon, authenticated;
 revoke all on function public.review_class_attendance(uuid, text)
   from public, anon, authenticated;
+revoke all on function public.set_class_attendance(uuid, text, text)
+  from public, anon, authenticated;
 revoke all on function public.get_my_class_attendance_score(text)
   from public, anon, authenticated;
 revoke all on function public.sync_class_attendance_score()
@@ -690,6 +805,8 @@ grant execute on function public.get_or_create_today_attendance_session(text)
 grant execute on function public.request_class_attendance(uuid)
   to authenticated;
 grant execute on function public.review_class_attendance(uuid, text)
+  to authenticated;
+grant execute on function public.set_class_attendance(uuid, text, text)
   to authenticated;
 grant execute on function public.get_my_class_attendance_score(text)
   to authenticated;

@@ -8,11 +8,13 @@ class AttendanceService {
   AttendanceService(this._client);
 
   Future<AttendanceOverview> getOverview(String classId) async {
-    final scoreResult = await _client.rpc(
+    final datesResult = await _client.rpc(
       'get_my_class_attendance_score',
       params: {'p_class_id': classId},
     );
-    final studentAttendanceScore = (scoreResult as num?)?.toDouble() ?? 0;
+    final studentAttendanceDates = (datesResult as List<dynamic>? ?? const [])
+        .map((date) => DateTime.parse(date as String))
+        .toList(growable: false);
     final scheduleRows = await _client
         .from('class_attendance_schedules')
         .select()
@@ -41,7 +43,7 @@ class AttendanceService {
         schedules: schedules,
         todaySession: null,
         records: const [],
-        studentAttendanceScore: studentAttendanceScore,
+        studentAttendanceDates: studentAttendanceDates,
       );
     }
 
@@ -61,7 +63,7 @@ class AttendanceService {
             ),
           )
           .toList(growable: false),
-      studentAttendanceScore: studentAttendanceScore,
+      studentAttendanceDates: studentAttendanceDates,
     );
   }
 
@@ -96,6 +98,21 @@ class AttendanceService {
     await _client.rpc(
       'review_class_attendance',
       params: {'p_record_id': recordId, 'p_status': status},
+    );
+  }
+
+  Future<void> setAttendance({
+    required String sessionId,
+    required String studentId,
+    required String status,
+  }) async {
+    await _client.rpc(
+      'set_class_attendance',
+      params: {
+        'p_session_id': sessionId,
+        'p_student_id': studentId,
+        'p_status': status,
+      },
     );
   }
 }
