@@ -56,6 +56,38 @@ void main() {
 
     router.dispose();
   });
+
+  testWidgets('class owner can open the gradebook', (tester) async {
+    final router = await _pumpClassDetail(
+      tester,
+      classModel: _classModel(),
+      service: _FakeClassService(),
+      currentUserId: 'teacher-1',
+      isProfessor: true,
+    );
+
+    expect(find.text('دفتر نمرات کلاس'), findsOneWidget);
+    await tester.tap(find.text('دفتر نمرات کلاس'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('دفتر آزمایشی'), findsOneWidget);
+
+    router.dispose();
+  });
+
+  testWidgets('student cannot see the class gradebook action', (tester) async {
+    final router = await _pumpClassDetail(
+      tester,
+      classModel: _classModel(),
+      service: _FakeClassService(),
+      currentUserId: 'student-1',
+      isProfessor: false,
+    );
+
+    expect(find.text('دفتر نمرات کلاس'), findsNothing);
+
+    router.dispose();
+  });
 }
 
 ClassModel _classModel() => ClassModel(
@@ -88,6 +120,11 @@ Future<GoRouter> _pumpClassDetail(
       GoRoute(
         path: '/class',
         builder: (context, state) => ClassDetailPage(classModel: classModel),
+      ),
+      GoRoute(
+        path: '/gradebook',
+        name: 'gradebook',
+        builder: (context, state) => const Scaffold(body: Text('دفتر آزمایشی')),
       ),
     ],
   );

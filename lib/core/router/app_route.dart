@@ -12,6 +12,8 @@ import 'package:karafarini/features/forms/pages/page_list/form_list.dart';
 import 'package:karafarini/features/profile/presentation/profile_page.dart';
 import 'package:karafarini/features/home/presentation/pages/home_page.dart';
 import 'package:karafarini/features/classes/models/class_model.dart';
+import 'package:karafarini/features/grading/presentation/gradebook_page.dart';
+import 'package:karafarini/features/grading/presentation/student_grade_page.dart';
 import 'package:karafarini/core/widgets/app_bar_builder.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -132,6 +134,37 @@ final appRouter = GoRouter(
               ),
             ),
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/gradebook',
+      name: 'gradebook',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is ClassModel) {
+          return GradebookPage(classModel: extra);
+        }
+        return const Scaffold(
+          appBar: AppBarBuilder(title: 'دفتر نمرات'),
+          body: Center(child: Text('اطلاعات کلاس معتبر نیست.')),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/student-grade',
+      name: 'student-grade',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is GradeStudentRouteArgs) {
+          return StudentGradePage(
+            classModel: extra.classModel,
+            member: extra.member,
+          );
+        }
+        return const Scaffold(
+          appBar: AppBarBuilder(title: 'ثبت نمره'),
+          body: Center(child: Text('اطلاعات دانشجو معتبر نیست.')),
         );
       },
     ),

@@ -135,6 +135,25 @@ class _ClassDetailPageState extends ConsumerState<ClassDetailPage> {
             children: [
               ClassDetailHeader(classModel: widget.classModel),
               const SizedBox(height: 24),
+              if (isProfessor && isClassOwner) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.pushNamed(
+                      'gradebook',
+                      extra: widget.classModel,
+                    ),
+                    icon: const Icon(Icons.grade_outlined),
+                    label: const Text('دفتر نمرات کلاس'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
               isProfessor
                   ? ClassMembersSection(classId: widget.classModel.id)
                   : StudentClassDetailSection(
