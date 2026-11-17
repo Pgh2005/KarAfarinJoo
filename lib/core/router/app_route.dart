@@ -24,6 +24,7 @@ final supabase = Supabase.instance.client;
 final appRouter = GoRouter(
   initialLocation: '/splash',
   refreshListenable: GoRouterRefreshStream(supabase.auth.onAuthStateChange),
+  observers: [attendanceRouteObserver],
   redirect: (context, state) {
     final loggedIn = supabase.auth.currentSession != null;
 

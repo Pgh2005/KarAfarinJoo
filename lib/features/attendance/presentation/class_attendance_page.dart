@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karafarini/core/theme/app_theme.dart';
@@ -13,6 +15,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../grading/providers/gradebook_provider.dart';
 
+final attendanceRouteObserver = RouteObserver<PageRoute<dynamic>>();
+
 class ClassAttendancePage extends ConsumerStatefulWidget {
   final ClassModel classModel;
 
@@ -23,8 +27,45 @@ class ClassAttendancePage extends ConsumerStatefulWidget {
       _ClassAttendancePageState();
 }
 
-class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage> {
+class _ClassAttendancePageState extends ConsumerState<ClassAttendancePage>
+    with RouteAware {
   bool _isSaving = false;
+  PageRoute<dynamic>? _subscribedRoute;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<dynamic> && route != _subscribedRoute) {
+      if (_subscribedRoute != null) {
+        attendanceRouteObserver.unsubscribe(this);
+      }
+      _subscribedRoute = route;
+      attendanceRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    unawaited(_refreshAfterReturn());
+  }
+
+  Future<void> _refreshAfterReturn() async {
+    if (!mounted) return;
+    try {
+      await _refresh();
+    } on PostgrestException catch (error) {
+      _showMessage('به‌روزرسانی حضور و غیاب ناموفق بود: ${error.message}');
+    } on Exception catch (error) {
+      _showMessage('به‌روزرسانی حضور و غیاب ناموفق بود: $error');
+    }
+  }
+
+  @override
+  void dispose() {
+    attendanceRouteObserver.unsubscribe(this);
+    super.dispose();
+  }
 
   Future<void> _refresh() async {
     ref.invalidate(attendanceOverviewProvider(widget.classModel.id));
